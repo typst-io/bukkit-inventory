@@ -28,7 +28,7 @@ if (slotItem == null || slotItem.getType() == AIR) {
 }
 ```
 
-We need above code, and moreover what if we want to add an item on 2 or more slots? and what if the target inventory expressed another datatype like `Map<Int, ItemStack>`, `List<ItemStack>`?
+We need above code, and moreover what if we want to add an item on 2 or more slots? and what if the target inventory has expressed as another datatype like `Map<Int, ItemStack>`, `List<ItemStack>`?
 
 `bukkit-inventory` normalized such requirements:
 
