@@ -1,0 +1,43 @@
+plugins {
+    id 'java'
+    id 'kr.entree.spigradle.base' version '2.4.3'
+    id 'maven-publish'
+}
+
+allprojects {
+    group = 'io.typecraft'
+    version = '1.0.0'
+}
+
+repositories {
+    mavenCentral()
+    spigotmc()
+}
+
+dependencies {
+    compileOnly spigot('1.20.4')
+    testImplementation platform('org.junit:junit-bom:5.9.1')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+java {
+    toolchain.setLanguageVersion(JavaLanguageVersion.of(8))
+    withSourcesJar()
+    withJavadocJar()
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId = rootProject.group
+            artifactId = rootProject.name
+            version = rootProject.version
+
+            from components.java
+        }
+    }
+}

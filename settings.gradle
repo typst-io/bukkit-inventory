@@ -1,0 +1,7 @@
+rootProject.name = 'bukkit-inventory'
+
+include('kotlin')
+
+rootProject.children.forEach {
+    it.name = "${rootProject.name}-${it.name}"
+}
