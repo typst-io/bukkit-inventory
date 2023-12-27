@@ -1,4 +1,4 @@
-package io.typecraft.bukkit.inventory;
+package io.typst.bukkit.inventory;
 
 import org.bukkit.inventory.ItemStack;
 

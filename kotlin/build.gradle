@@ -2,6 +2,7 @@ plugins {
     id 'org.jetbrains.kotlin.jvm' version '1.9.21'
     id 'kr.entree.spigradle.base' version '2.4.3'
     id 'maven-publish'
+    id 'signing'
 }
 
 repositories {
@@ -20,14 +21,4 @@ java {
     withJavadocJar()
 }
 
-publishing {
-    publications {
-        maven(MavenPublication) {
-            groupId = project.group
-            artifactId = project.name
-            version = project.version
-
-            from components.java
-        }
-    }
-}
+registerPublish(this)

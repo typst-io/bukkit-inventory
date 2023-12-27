@@ -1,33 +1,32 @@
-package io.typecraft.bukkit.inventory;
+package io.typst.bukkit.inventory;
 
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
-import java.util.Map;
 
-public class HashInventoryIterator implements ListIterator<ItemStack> {
-    private final Map<Integer, ItemStack> items;
-    private final List<Integer> keys;
+public class SubInventoryIterator implements ListIterator<ItemStack> {
+    private final Inventory inventory;
+    private final List<Integer> slots;
     private int nextIndex = 0;
     private int lastIndex = 0;
 
-    public HashInventoryIterator(Map<Integer, ItemStack> items) {
-        this.items = items;
-        this.keys = new ArrayList<>(items.keySet());
+    public SubInventoryIterator(Inventory inventory, List<Integer> slots) {
+        this.inventory = inventory;
+        this.slots = slots;
     }
 
     @Override
     public boolean hasNext() {
-        return nextIndex < keys.size();
+        return nextIndex < slots.size();
     }
 
     @Override
     public ItemStack next() {
         int index = nextIndex++;
         lastIndex = index;
-        return items.get(keys.get(index));
+        return inventory.getItem(slots.get(index));
     }
 
     @Override
@@ -39,26 +38,22 @@ public class HashInventoryIterator implements ListIterator<ItemStack> {
     public ItemStack previous() {
         int index = --nextIndex;
         lastIndex = index;
-        return items.get(keys.get(index));
+        return inventory.getItem(slots.get(index));
     }
 
     @Override
     public int nextIndex() {
-        return keys.get(nextIndex);
+        return slots.get(nextIndex);
     }
 
     @Override
     public int previousIndex() {
-        return keys.get(nextIndex - 1);
+        return slots.get(nextIndex - 1);
     }
 
     @Override
     public void set(ItemStack itemStack) {
-        if (itemStack != null) {
-            items.put(keys.get(lastIndex), itemStack);
-        } else {
-            items.remove(keys.get(lastIndex));
-        }
+        inventory.setItem(slots.get(lastIndex), itemStack);
     }
 
     @Override

@@ -1,6 +1,6 @@
-package io.typecraft.bukkit.inventory.kotlin
+package io.typst.bukkit.inventory.kotlin
 
-import io.typecraft.bukkit.inventory.ItemStacks
+import io.typst.bukkit.inventory.ItemStacks
 import org.bukkit.Material
 import org.bukkit.inventory.ItemStack
 

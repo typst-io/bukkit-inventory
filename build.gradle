@@ -2,11 +2,7 @@ plugins {
     id 'java'
     id 'kr.entree.spigradle.base' version '2.4.3'
     id 'maven-publish'
-}
-
-allprojects {
-    group = 'io.typecraft'
-    version = '1.0.0'
+    id 'signing'
 }
 
 repositories {
@@ -30,14 +26,75 @@ java {
     withJavadocJar()
 }
 
-publishing {
-    publications {
-        maven(MavenPublication) {
-            groupId = rootProject.group
-            artifactId = rootProject.name
-            version = rootProject.version
+allprojects {
+    group = 'io.typst'
+    version = '1.0.0'
+    def moduleName = it == rootProject ? "core" : name.substring(name.lastIndexOf('-') + 1)
+    println(moduleName)
+    ext.registerPublish = {
+        publishing {
+            publications {
+                create(moduleName, MavenPublication) {
+                    from(components['java'])
+                    groupId = project.group
+                    artifactId = project.name
+                    version = project.version
 
-            from components.java
+                    pom {
+                        name.set("${project.group}:${project.name}")
+                        description.set("Normalized inventory operations for Bukkit.")
+                        url.set("https://github.com/typst-io/bukkit-inventory")
+                        licenses {
+                            license {
+                                name.set("The GNU General Public License, Version 3.0")
+                                url.set("https://www.gnu.org/licenses/gpl-3.0.txt")
+                            }
+                        }
+                        developers {
+                            developer {
+                                id.set("entrypointkr")
+                                name.set("Junhyung Im")
+                                email.set("entrypointkr@gmail.com")
+                            }
+                        }
+                        scm {
+                            connection.set("scm:git:git://github.com/typst-io/command.git")
+                            developerConnection.set("scm:git:ssh://github.com:typst-io/command.git")
+                            url.set("https://github.com/typst-io/command/tree/master")
+                        }
+                    }
+                }
+            }
+            repositories {
+                maven {
+                    name = "sonatypeReleases"
+                    url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
+                    credentials {
+                        username = findProperty("ossrhUsername")?.toString()
+                        password = findProperty("ossrhPassword")?.toString()
+                    }
+                }
+                maven {
+                    name = "sonatypeSnapshots"
+                    url = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")
+                    credentials {
+                        username = findProperty("ossrhUsername")?.toString()
+                        password = findProperty("ossrhPassword")?.toString()
+                    }
+                }
+            }
+        }
+        signing {
+            sign(publishing.publications[moduleName])
+        }
+        java {
+            withSourcesJar()
+            withJavadocJar()
+        }
+        tasks.javadoc {
+            options.encoding = 'UTF-8'
         }
     }
 }
+
+registerPublish(this)

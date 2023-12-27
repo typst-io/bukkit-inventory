@@ -1,8 +1,8 @@
-package io.typecraft.bukkit.inventory.kotlin
+package io.typst.bukkit.inventory.kotlin
 
-import io.typecraft.bukkit.inventory.HashInventoryIterator
-import io.typecraft.bukkit.inventory.Inventories
-import io.typecraft.bukkit.inventory.SubInventoryIterator
+import io.typst.bukkit.inventory.HashInventoryIterator
+import io.typst.bukkit.inventory.Inventories
+import io.typst.bukkit.inventory.SubInventoryIterator
 import org.bukkit.entity.HumanEntity
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.ItemStack

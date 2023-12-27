@@ -56,7 +56,7 @@ repositories {
 
 dependencies {
     compileOnly 'org.spigotmc:spigot-api:1.20.4-R0.1-SNAPSHOT'
-    implementation 'io.typecraft:bukkit-inventory:1.0.0'
+    implementation 'io.typst:bukkit-inventory:1.0.0'
     // Use below instead for kotlin:
     // implementation 'io.typecraft:bukkit-inventory-kotlin:1.0.0'
 }
