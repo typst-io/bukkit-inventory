@@ -1,6 +1,6 @@
 plugins {
     id 'java'
-    id 'kr.entree.spigradle.base' version '2.4.3'
+    id 'io.typst.spigradle' version '3.1.0'
     id 'maven-publish'
     id 'signing'
 }
@@ -12,6 +12,8 @@ repositories {
 
 dependencies {
     compileOnly spigot('1.20.4')
+    compileOnly lombok()
+    annotationProcessor lombok()
     testImplementation platform('org.junit:junit-bom:5.9.1')
     testImplementation 'org.junit.jupiter:junit-jupiter'
 }
@@ -21,14 +23,18 @@ test {
 }
 
 java {
-    toolchain.setLanguageVersion(JavaLanguageVersion.of(8))
+    toolchain.setLanguageVersion(JavaLanguageVersion.of(17))
     withSourcesJar()
     withJavadocJar()
 }
 
+generateSpigotDescription {
+    enabled = false
+}
+
 allprojects {
     group = 'io.typst'
-    version = '1.0.0'
+    version = '1.1.0'
     def moduleName = it == rootProject ? "core" : name.substring(name.lastIndexOf('-') + 1)
     println(moduleName)
     ext.registerPublish = {
@@ -68,15 +74,7 @@ allprojects {
             repositories {
                 maven {
                     name = "sonatypeReleases"
-                    url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
-                    credentials {
-                        username = findProperty("ossrhUsername")?.toString()
-                        password = findProperty("ossrhPassword")?.toString()
-                    }
-                }
-                maven {
-                    name = "sonatypeSnapshots"
-                    url = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")
+                    url = uri("https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/")
                     credentials {
                         username = findProperty("ossrhUsername")?.toString()
                         password = findProperty("ossrhPassword")?.toString()
@@ -93,6 +91,21 @@ allprojects {
         }
         tasks.javadoc {
             options.encoding = 'UTF-8'
+        }
+        tasks.register("publishCentralPortal") {
+            group = 'publishing'
+            doLast {
+                def url = new URL("https://ossrh-staging-api.central.sonatype.com/manual/upload/defaultRepository/$project.group")
+                println(url)
+                def con = url.openConnection() as HttpURLConnection
+                def username = findProperty("ossrhUsername")?.toString()
+                def password = findProperty("ossrhPassword")?.toString()
+                def credential = Base64.encoder.encodeToString("$username:$password".getBytes())
+                def authValue = "Bearer $credential"
+                con.setRequestMethod("POST")
+                con.setRequestProperty("Authorization", authValue)
+                println(con.responseCode)
+            }
         }
     }
 }

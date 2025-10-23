@@ -1,6 +1,6 @@
 plugins {
-    id 'org.jetbrains.kotlin.jvm' version '1.9.21'
-    id 'kr.entree.spigradle.base' version '2.4.3'
+    id 'org.jetbrains.kotlin.jvm' version '2.2.0'
+    id 'io.typst.spigradle' version '3.1.0'
     id 'maven-publish'
     id 'signing'
 }
@@ -11,14 +11,18 @@ repositories {
 }
 
 dependencies {
-    compileOnly spigot('1.19.4')
+    compileOnly spigot('1.20.4')
     api rootProject
 }
 
 java {
-    toolchain.setLanguageVersion(JavaLanguageVersion.of(8))
+    toolchain.setLanguageVersion(JavaLanguageVersion.of(17))
     withSourcesJar()
     withJavadocJar()
+}
+
+generateSpigotDescription {
+    enabled = false
 }
 
 registerPublish(this)

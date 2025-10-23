@@ -2,6 +2,7 @@ package io.typst.bukkit.inventory.kotlin
 
 import io.typst.bukkit.inventory.HashInventoryIterator
 import io.typst.bukkit.inventory.Inventories
+import io.typst.bukkit.inventory.ItemHeader
 import io.typst.bukkit.inventory.SubInventoryIterator
 import org.bukkit.entity.HumanEntity
 import org.bukkit.inventory.Inventory
@@ -50,3 +51,19 @@ fun HumanEntity.giveItemOrDrop(item: ItemStack): Unit =
 
 fun ListIterator<ItemStack>.giveItem(item: ItemStack): Int =
     Inventories.giveItem(this, item)
+
+// header
+fun ListIterator<ItemStack>.takeItem(header: ItemHeader, count: Int): Pair<Int, List<ItemStack>> {
+    val ret = Inventories.takeItem(this, header, count)
+    return ret.key to ret.value
+}
+
+fun Iterator<ItemStack>.hasItems(header: ItemHeader): Int =
+    Inventories.hasItems(this, header)
+
+fun Inventory.takeItem(header: ItemHeader, count: Int): Pair<Int, List<ItemStack>> {
+    return iterator().takeItem(header, count)
+}
+
+fun Inventory.hasItems(header: ItemHeader): Int =
+    iterator().hasItems(header)

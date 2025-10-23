@@ -4,8 +4,8 @@ import org.bukkit.Material;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.Iterator;
-import java.util.ListIterator;
+import java.util.AbstractMap.SimpleEntry;
+import java.util.*;
 
 public class Inventories {
     private static boolean checkEmpty(ItemStack item) {
@@ -60,6 +60,19 @@ public class Inventories {
         return amount;
     }
 
+    public static int hasItems(Iterator<ItemStack> iterator, ItemHeader header) {
+        int hasAmount = 0;
+        while (iterator.hasNext()) {
+            ItemStack item = iterator.next();
+            if (checkEmpty(item)) continue;
+            ;
+            if (ItemHeader.from(item).equals(header)) {
+                hasAmount += item.getAmount();
+            }
+        }
+        return hasAmount;
+    }
+
     public static boolean hasSpace(Iterator<ItemStack> iterator, ItemStack x) {
         if (checkEmpty(x)) {
             return false;
@@ -106,5 +119,30 @@ public class Inventories {
             }
         }
         return amount - takeAmount;
+    }
+
+    public static Map.Entry<Integer, List<ItemStack>> takeItem(ListIterator<ItemStack> iterator, ItemHeader header, int count) {
+        if (header.getMaterial() == Material.AIR) {
+            return new SimpleEntry<>(0, Collections.emptyList());
+        }
+        List<ItemStack> takenItems = new ArrayList<>();
+        int dec = count;
+        while (iterator.hasNext()) {
+            ItemStack item = iterator.next();
+            if (checkEmpty(item) || !ItemHeader.from(item).equals(header)) continue;
+            if (dec <= 0) {
+                break;
+            }
+            int amount = item.getAmount();
+            item.setAmount(Math.max(amount - dec, 0));
+            dec = Math.max(dec - amount, 0);
+            int takenAmount = Math.max(amount, dec);
+            if (takenAmount >= 1) {
+                ItemStack takenItem = new ItemStack(item);
+                takenItem.setAmount(takenAmount);
+                takenItems.add(takenItem);
+            }
+        }
+        return new SimpleEntry<>(count - dec, takenItems);
     }
 }
