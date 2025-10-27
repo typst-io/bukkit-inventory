@@ -1,5 +1,7 @@
 # bukkit-inventory
 
+![Maven Central Version](https://img.shields.io/maven-central/v/io.typst/bukkit-inventory)
+
 A lightweight library for doing give, take, has operations on any inventory datatype.
 
 ## Motivation
