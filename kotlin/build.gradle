@@ -1,6 +1,6 @@
 plugins {
-    id 'org.jetbrains.kotlin.jvm' version '2.2.0'
-    id 'io.typst.spigradle' version '3.1.0'
+    id 'org.jetbrains.kotlin.jvm' version '2.2.21'
+    id 'io.typst.spigradle' version '3.1.2'
     id 'maven-publish'
     id 'signing'
 }
@@ -11,12 +11,12 @@ repositories {
 }
 
 dependencies {
-    compileOnly spigot('1.20.4')
+    compileOnly spigot('1.16.5')
     api rootProject
 }
 
 java {
-    toolchain.setLanguageVersion(JavaLanguageVersion.of(17))
+    toolchain.setLanguageVersion(JavaLanguageVersion.of(11))
     withSourcesJar()
     withJavadocJar()
 }

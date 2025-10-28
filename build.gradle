@@ -1,6 +1,6 @@
 plugins {
     id 'java'
-    id 'io.typst.spigradle' version '3.1.0'
+    id 'io.typst.spigradle' version '3.1.2'
     id 'maven-publish'
     id 'signing'
 }
@@ -11,7 +11,7 @@ repositories {
 }
 
 dependencies {
-    compileOnly spigot('1.20.4')
+    compileOnly spigot('1.16.5')
     compileOnly lombok()
     annotationProcessor lombok()
     testImplementation platform('org.junit:junit-bom:5.9.1')
@@ -23,7 +23,7 @@ test {
 }
 
 java {
-    toolchain.setLanguageVersion(JavaLanguageVersion.of(17))
+    toolchain.setLanguageVersion(JavaLanguageVersion.of(11))
     withSourcesJar()
     withJavadocJar()
 }
