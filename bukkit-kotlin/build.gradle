@@ -1,0 +1,29 @@
+plugins {
+    id 'org.jetbrains.kotlin.jvm' version '2.2.21'
+    id 'io.typst.spigradle' version '3.1.2'
+    id 'maven-publish'
+    id 'signing'
+}
+
+repositories {
+    mavenCentral()
+    spigotmc()
+}
+
+dependencies {
+    compileOnly spigot('1.16.5')
+    implementation 'org.jetbrains:annotations:26.0.2-1'
+    api project(':inventory-bukkit')
+}
+
+java {
+    toolchain.setLanguageVersion(JavaLanguageVersion.of(11))
+    withSourcesJar()
+    withJavadocJar()
+}
+
+generateSpigotDescription {
+    enabled = false
+}
+
+registerPublish(this)

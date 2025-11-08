@@ -1,0 +1,34 @@
+plugins {
+    id 'java'
+    id 'io.typst.spigradle' version '3.1.2'
+    id 'maven-publish'
+    id 'signing'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.jetbrains:annotations:26.0.2-1'
+    compileOnly lombok('1.18.42')
+    annotationProcessor lombok('1.18.42')
+    testImplementation platform('org.junit:junit-bom:5.9.1')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+java {
+    toolchain.setLanguageVersion(JavaLanguageVersion.of(11))
+    withSourcesJar()
+    withJavadocJar()
+}
+
+generateSpigotDescription {
+    enabled = false
+}
+
+registerPublish(this)
