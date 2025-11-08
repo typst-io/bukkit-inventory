@@ -24,8 +24,8 @@ allprojects {
 
                     pom {
                         name.set("${project.group}:${project.name}")
-                        description.set("Normalized inventory operations for Bukkit.")
-                        url.set("https://github.com/typst-io/bukkit-inventory")
+                        description.set("Normalized inventory operations for Games.")
+                        url.set("https://github.com/typst-io/inventory")
                         licenses {
                             license {
                                 name.set("The GNU General Public License, Version 3.0")
@@ -40,9 +40,9 @@ allprojects {
                             }
                         }
                         scm {
-                            connection.set("scm:git:git://github.com/typst-io/command.git")
-                            developerConnection.set("scm:git:ssh://github.com:typst-io/command.git")
-                            url.set("https://github.com/typst-io/command/tree/master")
+                            connection.set("scm:git:git://github.com/typst-io/inventory.git")
+                            developerConnection.set("scm:git:ssh://github.com:typst-io/inventory.git")
+                            url.set("https://github.com/typst-io/inventory/tree/master")
                         }
                     }
                 }
