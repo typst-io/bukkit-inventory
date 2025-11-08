@@ -25,4 +25,8 @@ public class GiveResult<A> {
     public static <A> GiveResult<A> empty() {
         return (GiveResult<A>) EMPTY;
     }
+
+    public boolean isSuccess() {
+        return leftoverItem == null;
+    }
 }

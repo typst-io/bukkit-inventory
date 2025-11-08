@@ -29,4 +29,8 @@ public class TakeResult<A> {
         int newRemainingCount = remainingCount + another.getRemainingCount();
         return new TakeResult<>(Map.copyOf(newItems), newRemainingCount);
     }
+
+    public boolean isSuccess() {
+        return remainingCount <= 0;
+    }
 }

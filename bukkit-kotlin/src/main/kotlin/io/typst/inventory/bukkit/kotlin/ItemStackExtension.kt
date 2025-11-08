@@ -1,6 +1,8 @@
 package io.typst.inventory.bukkit.kotlin
 
+import io.typst.inventory.ItemKey
 import io.typst.inventory.bukkit.BukkitItem
+import io.typst.inventory.bukkit.BukkitItemStackOps
 import io.typst.inventory.bukkit.BukkitItemStacks
 import org.bukkit.Material
 import org.bukkit.inventory.ItemStack
@@ -27,3 +29,7 @@ fun item(
         .customModelData(customModelData)
         .build()
         .create()
+
+fun Material.toItemKey(): ItemKey = ItemKey(key.toString(), "")
+
+fun ItemKey.toItemStack(): ItemStack? = BukkitItemStackOps.INSTANCE.create(this)

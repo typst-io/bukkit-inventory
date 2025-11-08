@@ -1,6 +1,6 @@
 # inventory
 
-![Maven Central Version](https://img.shields.io/maven-central/v/io.typst/inventory)
+![Maven Central Version](https://img.shields.io/maven-central/v/io.typst/inventory-core)
 
 A lightweight, generalized library for representing inventories in any game and running
 operations on top of that data.

@@ -7,6 +7,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 import java.util.function.Predicate;
 
+// TODO: Snapshot Transaction
 /**
  * Immutable snapshot of an inventory plus the operations required
  * to interpret and manipulate its items.
