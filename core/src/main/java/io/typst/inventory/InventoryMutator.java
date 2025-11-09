@@ -2,10 +2,22 @@ package io.typst.inventory;
 
 import lombok.With;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Applies {@link InventoryPatch}es and high-level operations to a mutable
+ * {@link InventoryAdapter}-backed inventory.
+ *
+ * <p>This class is responsible for performing the actual mutation. All
+ * heavy logic (space calculation, validation, combining operations) is
+ * delegated to {@link InventorySnapshotView}, {@link InventoryPatch}, and
+ * {@link InventoryTransaction}.</p>
+ *
+ * <p>Methods such as {@link #takeItems(Iterable)} are atomic with respect
+ * to this mutator: they compute a patch first and only write to the
+ * underlying inventory if it is fully successful.</p>
+ */
 @With
 public class InventoryMutator<I, E> {
     private final InventoryAdapter<I> inventory;
@@ -20,28 +32,44 @@ public class InventoryMutator<I, E> {
         this.emptyItemKey = emptyItemKey;
     }
 
-    public ImmutableInventory<I> toImmutable() {
-        return ImmutableInventory.from(inventory, itemOps, emptyItemKey);
+    public InventorySnapshotView<I> toMutableSnapshot() {
+        return new InventorySnapshotView<>(inventory, itemOps, emptyItemKey);
+    }
+
+//    private List<Integer> inputSlots = List.of(1, 2, 3);
+//    private int outputSlot = 4;
+//    private List<I> ingredients = List.of();
+//    private I output = null;
+//
+//    public void test3() {
+//        InventoryTransaction<I> transaction = InventoryTransaction.from(toImmutable())
+//                .updated(inv -> inv.subInventory(inputSlots).takeItems(ingredients))
+//                .updated(inv -> inv.subInventory(outputSlot).giveItems(output));
+//        if (transaction.isSuccess()) {
+//            update(transaction.getPatch());
+//        } else {
+//            InventoryFailure<I> failure = transaction.getPatch().getFailure();
+//
+//        }
+//    }
+
+    public void update(InventoryPatch<I> patch) {
+        for (Map.Entry<Integer, I> pair : patch.getModifiedItems().entrySet()) {
+            inventory.set(pair.getKey(), pair.getValue());
+        }
     }
 
     public void giveItemOrDrop(E entity, I item) {
-        ImmutableInventory<I> inv = toImmutable();
-        GiveResult<I> result = inv.giveItem(item);
-        result.getModifiedItems().forEach(inventory::set);
-        result.getLeftoverItemOptional().ifPresent(a -> entityOps.dropItem(entity, a));
+        InventorySnapshotView<I> inv = toMutableSnapshot();
+        InventoryPatch<I> patch = inv.giveItems(item);
+        patch.getModifiedItems().forEach(inventory::set);
+        patch.getFailure().getGiveLeftoverItems().forEach(a -> entityOps.dropItem(entity, a));
     }
 
     public boolean giveItem(Iterable<I> items) {
-        ImmutableInventory<I> inv = toImmutable();
-        Map<Integer, I> modifiedItems = new HashMap<>();
-        for (I item : items) {
-            GiveResult<I> result = inv.giveItem(item);
-            if (result.getLeftoverItem() != null) {
-                return false;
-            }
-            modifiedItems.putAll(result.getModifiedItems());
-        }
-        modifiedItems.forEach(inventory::set);
+        InventorySnapshotView<I> inv = toMutableSnapshot();
+        InventoryPatch<I> patch = inv.giveItems(items);
+        patch.getModifiedItems().forEach(inventory::set);
         return true;
     }
 
@@ -51,9 +79,9 @@ public class InventoryMutator<I, E> {
     }
 
     public boolean takeItems(Iterable<I> items) {
-        TakeResult<I> result = toImmutable().takeItems(items);
-        if (result.getRemainingCount() <= 0) {
-            result.getModifiedItems().forEach(inventory::set);
+        InventoryPatch<I> patch = toMutableSnapshot().takeItems(items);
+        if (patch.isSuccess()) {
+            patch.getModifiedItems().forEach(inventory::set);
             return true;
         }
         return false;

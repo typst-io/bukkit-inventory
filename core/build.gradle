@@ -1,5 +1,5 @@
 plugins {
-    id 'java'
+    id 'java-library'
     id 'io.typst.spigradle' version '3.1.2'
     id 'maven-publish'
     id 'signing'

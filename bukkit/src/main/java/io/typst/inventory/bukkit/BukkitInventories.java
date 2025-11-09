@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 public class BukkitInventories {
+    // adapter (mutable)
     public static InventoryAdapter<ItemStack> adapterFrom(Inventory inventory) {
         return new BukkitInventoryAdapter(inventory);
     }
@@ -21,22 +22,25 @@ public class BukkitInventories {
         return new ListInventoryAdapter<>(list, BukkitItemStackOps.INSTANCE);
     }
 
-    public static ImmutableInventory<ItemStack> immutableFrom(Inventory inventory) {
-        return ImmutableInventory.from(adapterFrom(inventory), BukkitItemStackOps.INSTANCE, ItemKey.MINECRAFT_EMPTY);
+    // snapshot (mutable)
+    public static InventorySnapshotView<ItemStack> viewFrom(Inventory inventory) {
+        return new InventorySnapshotView<>(adapterFrom(inventory), BukkitItemStackOps.INSTANCE, ItemKey.MINECRAFT_EMPTY);
     }
 
-    public static ImmutableInventory<ItemStack> immutableFrom(Map<Integer, ItemStack> map) {
-        return ImmutableInventory.from(adapterFrom(map), BukkitItemStackOps.INSTANCE, ItemKey.MINECRAFT_EMPTY);
+    public static InventorySnapshotView<ItemStack> viewFrom(Map<Integer, ItemStack> map) {
+        return new InventorySnapshotView<>(adapterFrom(map), BukkitItemStackOps.INSTANCE, ItemKey.MINECRAFT_EMPTY);
     }
 
-    public static ImmutableInventory<ItemStack> immutableFrom(List<ItemStack> list) {
-        return ImmutableInventory.from(adapterFrom(list), BukkitItemStackOps.INSTANCE, ItemKey.MINECRAFT_EMPTY);
+    public static InventorySnapshotView<ItemStack> viewFrom(List<ItemStack> list) {
+        return new InventorySnapshotView<>(adapterFrom(list), BukkitItemStackOps.INSTANCE, ItemKey.MINECRAFT_EMPTY);
     }
 
+    // sub
     public static InventoryAdapter<ItemStack> subInventory(InventoryAdapter<ItemStack> delegate, Iterable<Integer> slots) {
         return new SubInventoryAdapter<>(delegate, BukkitItemStackOps.INSTANCE, slots);
     }
 
+    // mutator
     public static InventoryMutator<ItemStack, Player> from(Inventory inventory) {
         return new InventoryMutator<>(adapterFrom(inventory), BukkitItemStackOps.INSTANCE, BukkitPlayerOps.INSTANCE, ItemKey.MINECRAFT_EMPTY);
     }
@@ -47,5 +51,18 @@ public class BukkitInventories {
 
     public static InventoryMutator<ItemStack, Player> from(List<ItemStack> list) {
         return new InventoryMutator<>(adapterFrom(list), BukkitItemStackOps.INSTANCE, BukkitPlayerOps.INSTANCE, ItemKey.MINECRAFT_EMPTY);
+    }
+
+    // transaction (immutables)
+    public static InventoryTransaction<ItemStack> transactionFrom(Inventory inventory) {
+        return new InventoryTransaction<>(viewFrom(inventory), InventoryPatch.empty());
+    }
+
+    public static InventoryTransaction<ItemStack> transactionFrom(Map<Integer, ItemStack> map) {
+        return new InventoryTransaction<>(viewFrom(map), InventoryPatch.empty());
+    }
+
+    public static InventoryTransaction<ItemStack> transactionFrom(List<ItemStack> list) {
+        return new InventoryTransaction<>(viewFrom(list), InventoryPatch.empty());
     }
 }

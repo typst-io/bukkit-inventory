@@ -1,5 +1,9 @@
 package io.typst.inventory.bukkit.kotlin
 
+import io.typst.inventory.InventoryFailure
+import io.typst.inventory.InventoryPatch
+import io.typst.inventory.InventorySnapshotView
+import io.typst.inventory.InventoryTransaction
 import io.typst.inventory.ItemKey
 import io.typst.inventory.bukkit.BukkitItem
 import io.typst.inventory.bukkit.BukkitItemStackOps
@@ -33,3 +37,7 @@ fun item(
 fun Material.toItemKey(): ItemKey = ItemKey(key.toString(), "")
 
 fun ItemKey.toItemStack(): ItemStack? = BukkitItemStackOps.INSTANCE.create(this)
+
+fun emptyItemStack(): ItemStack = BukkitItemStacks.getEmpty()
+
+fun failurePatch(): InventoryPatch<ItemStack> = InventoryPatch.failure(emptyItemStack())

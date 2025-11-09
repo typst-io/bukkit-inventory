@@ -10,7 +10,7 @@ repositories {
 
 allprojects {
     group = 'io.typst'
-    version = '2.0.0'
+    version = '2.1.0'
     def moduleName = name.substring(name.lastIndexOf('-') + 1)
     println(moduleName)
     ext.registerPublish = {

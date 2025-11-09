@@ -77,7 +77,7 @@ inventory.toMutator()
 **Example 2: Only insert if there is enough space**
 
 ```java
-if (BukkitInventories.from(inventory).giveItem(item)) {
+if (BukkitInventories.from(inventory).giveItems(item)) {
     // Success: inventory updated
 } else {
     // Failed: not enough space, inventory unchanged
@@ -92,6 +92,23 @@ BukkitInventories.from(map).giveItemOrDrop(player, item);
 
 if (BukkitInventories.from(map).takeItems(items)) {
     // success
+}
+```
+
+**Example 4: Atomic operation -- take and give**
+
+```java
+// inventory: Inventory
+// inputItem: ItemStack
+// outputItem: ItemStack
+// inputSlots: List<Int>
+// outputSlot: Int
+var transaction = BukkitInventories.transactionFrom(inv)
+  .updated(inv -> inv.takeItems(inputItem))
+  .updated(inv -> inv.giveItems(outputItem));
+if (transaction.isSuccess()) {
+  transaction.getPatch().getModifiedItems().forEach(inv::set);
+  // some another operations...
 }
 ```
 
@@ -121,7 +138,7 @@ if (BukkitInventories.from(map).takeItems(items)) {
 2. **Inventory view (`InventoryAdapter<A>`)**
    Adapts any storage structure into a `slot -> item` view.
 
-3. **Pure operations (`ImmutableInventory<A>`)**
+3. **Pure operations (`InventorySnapshotView<A>`)**
    Computes results such as modified slots and remaining quantities **without**
    directly mutating the underlying inventory.
 
@@ -134,7 +151,7 @@ for Minecraft inventories, but for any game.
 
 * Wrap your inventory data with `InventoryAdapter<A>`.
 * Implement `ItemStackOps<A>` for your item type.
-* Create an `ImmutableInventory<A>` snapshot.
+* Create an `InventorySnapshotView<A>` snapshot.
 * Call operations like `give` / `take` / `has`.
 * Apply the resulting `modifiedItems` back to your game’s inventory state.
 
@@ -146,7 +163,7 @@ for Minecraft inventories, but for any game.
 
 Applies pure operation results to the actual game inventory.
 
-* Reads results from `ImmutableInventory`:
+* Reads results from `InventorySnapshotView`:
 
   * Writes changes to slots
   * Handles side effects such as dropping leftover items near an entity
@@ -155,34 +172,29 @@ Applies pure operation results to the actual game inventory.
 This cleanly separates calculation from effects, e.g.:
 
 * `giveItemOrDrop(Entity, Item)`
-* `giveItem(Item): Boolean`
 * `takeItems(Item...): Boolean`
 
-### `ImmutableInventory<A>`
+### `InventorySnapshotView<A>`
 
 A pure operation layer that does **not** directly modify the real inventory:
 
-* `giveItem(A): GiveResult<A>`
-* `takeItems(A...): TakeResult<A>`
+* `giveItems(A): InventoryPatch<A>`
+* `takeItems(A...): InventoryPatch<A>`
 * `hasItems(A): Boolean`
 * `countItems(ItemKey)`
 * `findSpaces(A): Map<Int, Int>`
 * `findSlots(A): Map<Int, Int>`
 * ...
 
-### `GiveResult<A>` / `TakeResult<A>`
+### `InventoryPatch<A>`
 
 Explicit representations of operation results.
 
-* **GiveResult**
-
+* **InventoryPatch**
   * `modifiedItems`: slots to overwrite in the game inventory
-  * `leftoverItem`: any part of the item that could not be inserted
-* **TakeResult**
-
-  * `modifiedItems`: slots to overwrite in the game inventory
-  * `remainingCount`: how many requested items could not be taken
-
+  * `patch`: failure result
+    * `giveLeftoverItems`: any part of the item that could not be inserted
+    * `takeRemainingItems`: any part of the item that could not be taken
 ### `InventoryAdapter<A>`
 
 Generalized interface for slot-based access, with implementations such as:

@@ -1,8 +1,6 @@
 package io.typst.inventory.bukkit.kotlin
 
-import io.typst.inventory.ImmutableInventory
-import io.typst.inventory.InventoryAdapter
-import io.typst.inventory.InventoryMutator
+import io.typst.inventory.*
 import io.typst.inventory.bukkit.BukkitInventories
 import org.bukkit.entity.Player
 import org.bukkit.inventory.Inventory
@@ -16,16 +14,15 @@ fun Map<Int, ItemStack>.toAdapter(): InventoryAdapter<ItemStack> =
 
 fun List<ItemStack>.toAdapter(): InventoryAdapter<ItemStack> = BukkitInventories.adapterFrom(this)
 
+// snapshot (mutable)
+fun Inventory.toView(): InventorySnapshotView<ItemStack> =
+    BukkitInventories.viewFrom(this)
 
-// immutable
-fun Inventory.toImmutable(): ImmutableInventory<ItemStack> =
-    BukkitInventories.immutableFrom(this)
+fun Map<Int, ItemStack>.toView(): InventorySnapshotView<ItemStack> =
+    BukkitInventories.viewFrom(this)
 
-fun Map<Int, ItemStack>.toImmutableInventory(): ImmutableInventory<ItemStack> =
-    BukkitInventories.immutableFrom(this)
-
-fun List<ItemStack>.toImmutableInventory(): ImmutableInventory<ItemStack> =
-    BukkitInventories.immutableFrom(this)
+fun List<ItemStack>.toView(): InventorySnapshotView<ItemStack> =
+    BukkitInventories.viewFrom(this)
 
 // sub
 fun InventoryAdapter<ItemStack>.subInventory(slots: Iterable<Int>): InventoryAdapter<ItemStack> =
@@ -37,3 +34,13 @@ fun Inventory.toMutator(): InventoryMutator<ItemStack, Player> = BukkitInventori
 fun Map<Int, ItemStack>.toMutator(): InventoryMutator<ItemStack, Player> = BukkitInventories.from(this)
 
 fun List<ItemStack>.toMutator(): InventoryMutator<ItemStack, Player> = BukkitInventories.from(this)
+
+// transaction
+fun Inventory.toTransaction(): InventoryTransaction<ItemStack> = BukkitInventories.transactionFrom(this)
+
+fun Map<Int, ItemStack>.toTransaction(): InventoryTransaction<ItemStack> = BukkitInventories.transactionFrom(this)
+
+fun List<ItemStack>.toTransaction(): InventoryTransaction<ItemStack> = BukkitInventories.transactionFrom(this)
+
+fun <A> InventoryTransaction<A>.updating(f: (InventorySnapshotView<A>).() -> InventoryPatch<A>): InventoryTransaction<A> =
+    updated { f(it) }

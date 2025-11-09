@@ -1,6 +1,6 @@
 # inventory
 
-![Maven Central Version](https://img.shields.io/maven-central/v/io.typst/inventory)
+![Maven Central Version](https://img.shields.io/maven-central/v/io.typst/inventory-core)
 
 모든 게임의 인벤토리를 표현할 수 있는 데이터와 그에 대한 연산을 수행할 수 있게 일반화한 경량 라이브러리입니다.
 
@@ -103,7 +103,7 @@ if (BukkitInventories.from(map).takeItems(items)) {
 
 1. 아이템 추상화(ItemStackOps<A>): 아이템 타입 `A` 를 어떻게 비교/복사/생성/비움으로 표현할지 정의
 2. 인벤토리 뷰(InventoryAdapter<A>): 어떤 저장 구조든 `슬롯 -> 아이템` 형태로 다루게 해주는 어댑터
-3. 순수 연산(ImmutableInventory<A>): 실제 인벤토리를 바로 건드리지 않고, 연산 결과(변경될 슬롯, 남는 수량)를 계산해서 돌려주는 계층
+3. 순수 연산(InventorySnapshotView<A>): 실제 인벤토리를 바로 건드리지 않고, 연산 결과(변경될 슬롯, 남는 수량)를 계산해서 돌려주는 계층
 
 이 세 가지를 조합해서 마인크래프트 Inventory 는 물론 어떤 게임에서든 인벤토리 연산을 할 수 있습니다.
 
@@ -111,7 +111,7 @@ if (BukkitInventories.from(map).takeItems(items)) {
 
 - 인벤토리 표현 데이터를 `InventoryAdapter<A>` 로 감싸기
 - 사용하는 아이템 타입에 따른 `ItemStackOps<A>` 구현
-- `ImmutableInventory<A>` 스냅샷 생성
+- `InventorySnapshotView<A>` 스냅샷 생성
 - give/take/has 등의 연산 호출
 - 결과에 포함된 modifiedItems 를 직접 게임 인벤토리 상태에 적용
 
@@ -121,7 +121,7 @@ if (BukkitInventories.from(map).takeItems(items)) {
 ### InventoryMutator<A>
 
 순수 연산 결과를 실제 게임 인벤토리에 적용하는 역할:
-- `ImmutableInventory` 의 결과를 읽고:
+- `InventorySnapshotView` 의 결과를 읽고:
   - 슬롯에 반영하거나
   - 남는 아이템을 엔티티 주변에 드랍 등의 부수효과 처리
 - 자주 쓰는 give, take 패턴의 IO 작업
@@ -131,26 +131,24 @@ if (BukkitInventories.from(map).takeItems(items)) {
 - `giveItem(Item): Boolean`
 - `takeItems(Item...): Boolean`
 
-### ImmutableInventory<A>
+### InventorySnapshotView<A>
 
 실제 인벤토리를 건드리지 않는 순수 연산 게층:
-- `giveItem(A): GiveResult<A>`
-- `takeItems(A...): TakeResult<A>`
+- `giveItem(A): InventoryPatch<A>`
+- `takeItems(A...): InventoryPatch<A>`
 - `hasItems(A): Boolean`
 - `countItems(ItemKey)`
 - `findSpaces(A): Map<Int, Int>`
 - `findSlots(A): Map<Int, Int>`
 - ...
 
-### GiveResult<A> / TakeResult<A>
+### InventoryPatch<A>
 
 연산 결과를 명시적으로 표현:
-- GiveResult:
   - modifiedItems: 변경될 슬롯(게임 인벤토리에 덮어쓰기 가능한 형태)
-  - leftoverItem: 다 넣지 못한 아이템
-- TakeResult:
-  - modifiedItems: 변경될 슬롯(게임 인벤토리에 덮어쓰기 가능한 형태)
-  - remainingCount: 다 가져가지 못한 아이템 개수
+  - failure: 실패 정보
+    - giveLeftoverItems: give 시 공간이 없어 다 넣지 못 한 아이템
+    - takeRemainingItems: take 시 부족한 아이템
 
 ### InventoryAdapter<A>
 

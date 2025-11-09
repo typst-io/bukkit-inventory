@@ -7,85 +7,69 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 import java.util.function.Predicate;
 
-// TODO: Snapshot Transaction
 /**
- * Immutable snapshot of an inventory plus the operations required
- * to interpret and manipulate its items.
+ * Read-only view over an {@link InventoryAdapter} with helpers to compute
+ * derived inventory operations in an immutable / side-effect-free way.
  *
- * <p>This type does not mutate any underlying inventory. Methods like
- * {@code giveItem} and {@code takeItem} return result objects describing
- * the changes (updated slots, leftovers) based on this snapshot.</p>
+ * <p>This type never mutates the underlying {@link InventoryAdapter}, and its
+ * own fields are immutable after construction. Methods such as
+ * {@link #takeItems(Iterable)} and {@link #giveItems(Iterable)} return
+ * {@link InventoryPatch} instances describing the changes that <em>would</em>
+ * be applied, but do not perform any mutation themselves.</p>
+ *
+ * <p><strong>Important:</strong> this class does not own a deep copy of the
+ * inventory contents. It delegates all reads to the given {@link InventoryAdapter}.
+ * If the underlying inventory is modified externally after the snapshot is created,
+ * those changes will be observed through this view. If you need a truly frozen
+ * snapshot, use {@link #toImmutable()} or wrap a copied map in a {@link MapInventoryAdapter} before constructing
+ * this instance.</p>
  */
 @Value
 @With
-public class ImmutableInventory<A> implements Iterable<Map.Entry<Integer, A>> {
+public class InventorySnapshotView<A> implements Iterable<Map.Entry<Integer, A>> {
     /**
-     * Map of slot index to item value.
-     * <p>
-     * All slots in this snapshot must use the {@link ItemStackOps#empty()} value
-     * to represent an empty slot; {@code null} values are not allowed.
-     * Callers are responsible for providing a consistent map.
+     * Note that this field can be a mutable
      */
-    Map<Integer, A> itemMap;
+    InventoryAdapter<A> inventory;
     ItemStackOps<A> itemOps;
     ItemKey emptyItemkey;
 
-    public ImmutableInventory(@NotNull Map<Integer, @NotNull A> itemMap, @NotNull ItemStackOps<A> itemOps, ItemKey emptyItemkey) {
-        this.itemMap = Map.copyOf(itemMap);
+    public InventorySnapshotView(@NotNull InventoryAdapter<A> inventory, @NotNull ItemStackOps<A> itemOps, ItemKey emptyItemkey) {
+        this.inventory = inventory;
         this.itemOps = itemOps;
         this.emptyItemkey = emptyItemkey;
     }
 
-    @NotNull
-    public static <A> ImmutableInventory<A> from(Iterable<Map.Entry<Integer, @NotNull A>> entries, ItemStackOps<A> itemOps, ItemKey emptyItemkey) {
-        Map<Integer, A> map = new HashMap<>();
-        for (Map.Entry<Integer, @NotNull A> pair : entries) {
+    public InventorySnapshotView<A> toImmutable() {
+        Map<Integer, A> map = new LinkedHashMap<>();
+        for (Map.Entry<Integer, @NotNull A> pair : inventory) {
             A item = pair.getValue();
             A newItem = itemOps.isEmpty(item) ? itemOps.empty() : item;
             map.put(pair.getKey(), newItem);
         }
-        return new ImmutableInventory<>(map, itemOps, emptyItemkey);
+        return new InventorySnapshotView<>(new MapInventoryAdapter<>(Map.copyOf(map), itemOps), itemOps, emptyItemkey);
     }
 
-    @NotNull
-    public static <A> ImmutableInventory<A> fromList(List<A> items, ItemStackOps<A> itemOps, ItemKey emptyItemkey) {
-        if (items.isEmpty()) {
-            return new ImmutableInventory<>(Collections.emptyMap(), itemOps, emptyItemkey);
-        }
-        Map<Integer, A> itemMap = new HashMap<>();
-        for (int i = 0; i < items.size(); i++) {
-            A item = items.get(i);
-            if (itemOps.isEmpty(item)) {
-                itemMap.put(i, itemOps.empty());
-            } else {
-                itemMap.put(i, item);
-            }
-        }
-        return new ImmutableInventory<>(itemMap, itemOps, emptyItemkey);
-    }
-
-    public static <A> Map<Integer, A> subMap(Map<Integer, A> map, Iterable<Integer> slots, A empty) {
-        Map<Integer, A> newMap = new HashMap<>();
-        for (Integer slot : slots) {
-            A item = map.get(slot);
-            newMap.put(slot, item != null ? item : empty);
-        }
-        return newMap;
+    public InventorySnapshotView<A> updated(Map<Integer, A> modifiedItems) {
+        Map<Integer, A> newItems = new LinkedHashMap<>();
+        inventory.iterator().forEachRemaining(pair -> newItems.put(pair.getKey(), pair.getValue()));
+        newItems.putAll(modifiedItems);
+        return withInventory(new MapInventoryAdapter<>(newItems, itemOps));
     }
 
     @Override
     public @NotNull Iterator<Map.Entry<Integer, A>> iterator() {
-        return itemMap.entrySet().iterator();
+        return inventory.iterator();
     }
 
     @NotNull
-    public ImmutableInventory<A> subSnapshot(Iterable<Integer> slots) {
-        return withItemMap(subMap(itemMap, slots, itemOps.empty()));
+    public InventorySnapshotView<A> subInventory(Iterable<Integer> slots) {
+        return withInventory(new SubInventoryAdapter<>(inventory, itemOps, slots));
     }
 
     @NotNull
-    public ImmutableInventory<A> subSnapshot(Integer... slots) {
-        return withItemMap(subMap(itemMap, List.of(slots), itemOps.empty()));
+    public InventorySnapshotView<A> subInventory(Integer... slots) {
+        return subInventory(List.of(slots));
     }
 
     /**
@@ -134,7 +118,7 @@ public class ImmutableInventory<A> implements Iterable<Map.Entry<Integer, A>> {
             return Collections.emptyMap();
         }
         Map<Integer, Integer> map = new HashMap<>();
-        for (Map.Entry<Integer, A> pair : itemMap.entrySet()) {
+        for (Map.Entry<Integer, A> pair : inventory) {
             if (amount <= 0) {
                 break;
             }
@@ -188,7 +172,7 @@ public class ImmutableInventory<A> implements Iterable<Map.Entry<Integer, A>> {
             return Collections.emptyMap();
         }
         Map<Integer, Integer> ret = new HashMap<>();
-        for (Map.Entry<Integer, A> pair : itemMap.entrySet()) {
+        for (Map.Entry<Integer, A> pair : inventory) {
             if (count <= 0) {
                 break;
             }
@@ -206,29 +190,20 @@ public class ImmutableInventory<A> implements Iterable<Map.Entry<Integer, A>> {
     }
 
     @NotNull
-    public TakeResult<A> takeItem(A item) {
-        if (itemOps.isEmpty(item)) {
-            return TakeResult.empty();
-        }
-        return takeItem(itemOps.getAmount(item), a -> itemOps.isSimilar(a, item));
-    }
-
-    @NotNull
-    public TakeResult<A> takeItems(Iterable<A> items) {
-        TakeResult<A> acc = TakeResult.empty();
+    public InventoryPatch<A> takeItems(Iterable<A> items) {
+        InventoryPatch<A> acc = InventoryPatch.empty();
         for (A item : items) {
-            TakeResult<A> result = takeItem(item);
+            InventoryPatch<A> result = itemOps.isEmpty(item)
+                    ? InventoryPatch.empty()
+                    : takeItem(itemOps.getAmount(item), item, a -> itemOps.isSimilar(a, item));
             acc = acc.plus(result);
         }
         return acc;
     }
 
-    @NotNull
-    public TakeResult<A> takeItem(ItemKey key, int amount) {
-        if (key.equals(emptyItemkey)) {
-            return TakeResult.empty();
-        }
-        return takeItem(amount, a -> itemOps.getKeyFrom(a).equals(key));
+    @SafeVarargs
+    public final InventoryPatch<A> takeItems(A... items) {
+        return takeItems(List.of(items));
     }
 
     /**
@@ -244,17 +219,17 @@ public class ImmutableInventory<A> implements Iterable<Map.Entry<Integer, A>> {
      * </ul>
      */
     @NotNull
-    public TakeResult<A> takeItem(int count, Predicate<A> predicate) {
+    public InventoryPatch<A> takeItem(int count, A baseItem, Predicate<A> predicate) {
         Map<Integer, Integer> slots = findSlots(count, predicate);
         if (slots.isEmpty()) {
-            return TakeResult.empty();
+            return InventoryPatch.empty();
         }
 
         Map<Integer, A> ret = new HashMap<>();
         for (Map.Entry<Integer, Integer> pair : slots.entrySet()) {
             Integer slot = pair.getKey();
             Integer amount = pair.getValue();
-            A theItem = itemMap.get(slot);
+            A theItem = inventory.get(slot);
             int theAmount = itemOps.getAmount(theItem);
             int newAmount = theAmount - amount;
             A newItem = itemOps.copy(theItem);
@@ -266,7 +241,12 @@ public class ImmutableInventory<A> implements Iterable<Map.Entry<Integer, A>> {
             }
             count -= amount;
         }
-        return new TakeResult<>(ret, count);
+        A remainingItem = null;
+        if (count >= 1) {
+            remainingItem = itemOps.copy(baseItem);
+            itemOps.setAmount(remainingItem, count);
+        }
+        return InventoryPatch.fromTakeResult(ret, remainingItem);
     }
 
     public boolean hasItems(A x) {
@@ -282,42 +262,39 @@ public class ImmutableInventory<A> implements Iterable<Map.Entry<Integer, A>> {
                 .sum();
     }
 
-    /**
-     * Tries to insert the given item into this inventory view.
-     *
-     * @param x the item to insert
-     * @return a result containing:
-     * <ul>
-     *   <li>the updated slot contents for affected slots,</li>
-     *   <li>the leftover item if not all of {@code x} could be inserted,
-     *       or {@code null} if fully inserted.</li>
-     * </ul>
-     * This method does not modify this {@code InventorySnapshot}.
-     */
-    @NotNull
-    public GiveResult<A> giveItem(A x) {
-        Map<Integer, Integer> spaces = findSpaces(x);
-        if (spaces.isEmpty()) {
-            return GiveResult.empty();
-        }
+    public InventoryPatch<A> giveItems(Iterable<A> items) {
+        InventoryPatch<A> patch = InventoryPatch.empty();
+        for (A item : items) {
+            Map<Integer, Integer> spaces = findSpaces(item);
+            InventoryPatch<A> thePatch = InventoryPatch.empty();
 
-        Map<Integer, A> ret = new HashMap<>();
-        int leftoverAmount = itemOps.getAmount(x);
-        for (Map.Entry<Integer, Integer> pair : spaces.entrySet()) {
-            Integer slot = pair.getKey();
-            Integer amount = pair.getValue();
-            A item = itemMap.get(slot);
-            A newItem = itemOps.copy(item);
-            itemOps.setAmount(newItem, itemOps.getAmount(item) + amount);
-            ret.put(slot, newItem);
-            leftoverAmount -= amount;
+            if (!spaces.isEmpty()) {
+                Map<Integer, A> ret = new HashMap<>();
+                int leftoverAmount = itemOps.getAmount(item);
+                for (Map.Entry<Integer, Integer> pair : spaces.entrySet()) {
+                    Integer slot = pair.getKey();
+                    Integer amount = pair.getValue();
+                    A theItem = inventory.get(slot);
+                    A newItem = itemOps.copy(theItem);
+                    itemOps.setAmount(newItem, itemOps.getAmount(theItem) + amount);
+                    ret.put(slot, newItem);
+                    leftoverAmount -= amount;
+                }
+                A leftoverItem = null;
+                if (leftoverAmount >= 1) {
+                    A leftover = itemOps.copy(item);
+                    itemOps.setAmount(leftover, leftoverAmount);
+                    leftoverItem = leftover;
+                }
+                thePatch = InventoryPatch.fromGiveResult(ret, leftoverItem);
+            }
+            patch = patch.plus(thePatch);
         }
-        A leftoverItem = null;
-        if (leftoverAmount >= 1) {
-            A leftover = itemOps.copy(x);
-            itemOps.setAmount(leftover, leftoverAmount);
-            leftoverItem = leftover;
-        }
-        return new GiveResult<>(ret, leftoverItem);
+        return patch;
+    }
+
+    @SafeVarargs
+    public final InventoryPatch<A> giveItems(A... items) {
+        return giveItems(List.of(items));
     }
 }

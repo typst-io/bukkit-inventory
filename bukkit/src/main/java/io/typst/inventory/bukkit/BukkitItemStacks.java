@@ -1,6 +1,6 @@
 package io.typst.inventory.bukkit;
 
-import io.typst.inventory.GiveResult;
+import io.typst.inventory.InventoryPatch;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -25,13 +25,19 @@ public class BukkitItemStacks {
      */
     public static Optional<ItemStack> addedItem(@Nullable ItemStack target, @NotNull ItemStack item) {
         ItemStack targetItem = target != null ? target : BukkitItemStackOps.INSTANCE.empty();
-        GiveResult<ItemStack> result = BukkitInventories.immutableFrom(Map.of(0, targetItem)).giveItem(item);
-        ItemStack leftoverItem = result.getLeftoverItem();
+        InventoryPatch<ItemStack> result = BukkitInventories.viewFrom(Map.of(0, targetItem)).giveItems(item);
+        ItemStack leftoverItem = result.getFailure().getGiveLeftoverItems().isEmpty()
+                ? null
+                : result.getFailure().getGiveLeftoverItems().get(0);
         item.setAmount(leftoverItem != null ? leftoverItem.getAmount() : item.getAmount());
         return Optional.ofNullable(result.getModifiedItems().get(0));
     }
 
     public static List<ItemStack> collapseItems(Collection<ItemStack> items) {
         return BukkitItemStackOps.INSTANCE.collapseItems(items);
+    }
+
+    public static ItemStack getEmpty() {
+        return BukkitItemStackOps.INSTANCE.empty();
     }
 }
