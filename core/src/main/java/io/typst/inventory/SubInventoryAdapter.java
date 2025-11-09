@@ -1,13 +1,17 @@
 package io.typst.inventory;
 
+import lombok.Value;
+import lombok.With;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
+@Value
+@With
 public class SubInventoryAdapter<A> implements InventoryAdapter<A> {
-    private final InventoryAdapter<A> delegate;
-    private final ItemStackOps<A> itemOps;
-    private final Set<Integer> slots;
+    InventoryAdapter<A> delegate;
+    ItemStackOps<A> itemOps;
+    Set<Integer> slots;
 
     public SubInventoryAdapter(InventoryAdapter<A> delegate, ItemStackOps<A> itemOps, Iterable<Integer> slots) {
         this.delegate = delegate;

@@ -35,7 +35,7 @@ public class InventoryTransaction<A> {
     }
 
     public InventoryTransaction<A> updated(Function<InventorySnapshotView<A>, InventoryPatch<A>> f) {
-        if (!isSuccess()) {
+        if (!patch.getFailure().isEmpty()) {
             return this;
         }
         InventoryPatch<A> thePatch = f.apply(inventory);

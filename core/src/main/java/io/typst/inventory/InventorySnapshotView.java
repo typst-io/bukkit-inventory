@@ -222,7 +222,9 @@ public class InventorySnapshotView<A> implements Iterable<Map.Entry<Integer, A>>
     public InventoryPatch<A> takeItem(int count, A baseItem, Predicate<A> predicate) {
         Map<Integer, Integer> slots = findSlots(count, predicate);
         if (slots.isEmpty()) {
-            return InventoryPatch.empty();
+            A remainItem = itemOps.copy(baseItem);
+            itemOps.setAmount(remainItem, count);
+            return InventoryPatch.fromTakeResult(Map.of(), remainItem);
         }
 
         Map<Integer, A> ret = new HashMap<>();
@@ -275,7 +277,7 @@ public class InventorySnapshotView<A> implements Iterable<Map.Entry<Integer, A>>
                     Integer slot = pair.getKey();
                     Integer amount = pair.getValue();
                     A theItem = inventory.get(slot);
-                    A newItem = itemOps.copy(theItem);
+                    A newItem = itemOps.copy(item);
                     itemOps.setAmount(newItem, itemOps.getAmount(theItem) + amount);
                     ret.put(slot, newItem);
                     leftoverAmount -= amount;

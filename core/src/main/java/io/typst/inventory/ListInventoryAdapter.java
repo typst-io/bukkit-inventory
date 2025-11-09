@@ -1,5 +1,7 @@
 package io.typst.inventory;
 
+import lombok.Value;
+import lombok.With;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.AbstractMap;
@@ -8,9 +10,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.IntStream;
 
+
+@Value
+@With
 public class ListInventoryAdapter<A> implements InventoryAdapter<A> {
-    private final List<A> items;
-    private final ItemStackOps<A> itemOps;
+    List<A> items;
+    ItemStackOps<A> itemOps;
 
     public ListInventoryAdapter(List<A> items, ItemStackOps<A> itemOps) {
         this.items = items;

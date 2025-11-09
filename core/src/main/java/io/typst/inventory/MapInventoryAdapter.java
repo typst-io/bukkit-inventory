@@ -1,13 +1,17 @@
 package io.typst.inventory;
 
+import lombok.Value;
+import lombok.With;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Iterator;
 import java.util.Map;
 
+@Value
+@With
 public class MapInventoryAdapter<A> implements InventoryAdapter<A> {
-    private final Map<Integer, A> itemMap;
-    private final ItemStackOps<A> itemOps;
+    Map<Integer, A> itemMap;
+    ItemStackOps<A> itemOps;
 
     public MapInventoryAdapter(Map<Integer, A> itemMap, ItemStackOps<A> itemOps) {
         this.itemMap = itemMap;

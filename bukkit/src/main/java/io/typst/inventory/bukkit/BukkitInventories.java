@@ -8,17 +8,18 @@ import org.bukkit.inventory.ItemStack;
 import java.util.List;
 import java.util.Map;
 
+// TODO: context -- ItemStackOps
 public class BukkitInventories {
     // adapter (mutable)
-    public static InventoryAdapter<ItemStack> adapterFrom(Inventory inventory) {
+    public static BukkitInventoryAdapter adapterFrom(Inventory inventory) {
         return new BukkitInventoryAdapter(inventory);
     }
 
-    public static InventoryAdapter<ItemStack> adapterFrom(Map<Integer, ItemStack> map) {
+    public static MapInventoryAdapter<ItemStack> adapterFrom(Map<Integer, ItemStack> map) {
         return new MapInventoryAdapter<>(map, BukkitItemStackOps.INSTANCE);
     }
 
-    public static InventoryAdapter<ItemStack> adapterFrom(List<ItemStack> list) {
+    public static ListInventoryAdapter<ItemStack> adapterFrom(List<ItemStack> list) {
         return new ListInventoryAdapter<>(list, BukkitItemStackOps.INSTANCE);
     }
 
@@ -36,7 +37,7 @@ public class BukkitInventories {
     }
 
     // sub
-    public static InventoryAdapter<ItemStack> subInventory(InventoryAdapter<ItemStack> delegate, Iterable<Integer> slots) {
+    public static SubInventoryAdapter<ItemStack> subInventory(InventoryAdapter<ItemStack> delegate, Iterable<Integer> slots) {
         return new SubInventoryAdapter<>(delegate, BukkitItemStackOps.INSTANCE, slots);
     }
 

@@ -8,9 +8,25 @@ repositories {
     mavenCentral()
 }
 
+tasks.register("publishCentralPortal") {
+    group = 'publishing'
+    doLast {
+        def url = new URL("https://ossrh-staging-api.central.sonatype.com/manual/upload/defaultRepository/$project.group")
+        println(url)
+        def con = url.openConnection() as HttpURLConnection
+        def username = findProperty("ossrhUsername")?.toString()
+        def password = findProperty("ossrhPassword")?.toString()
+        def credential = Base64.encoder.encodeToString("$username:$password".getBytes())
+        def authValue = "Bearer $credential"
+        con.setRequestMethod("POST")
+        con.setRequestProperty("Authorization", authValue)
+        println(con.responseCode)
+    }
+}
+
 allprojects {
     group = 'io.typst'
-    version = '2.1.0'
+    version = '2.2.0'
     def moduleName = name.substring(name.lastIndexOf('-') + 1)
     println(moduleName)
     ext.registerPublish = {
@@ -67,21 +83,6 @@ allprojects {
         }
         tasks.javadoc {
             options.encoding = 'UTF-8'
-        }
-        tasks.register("publishCentralPortal") {
-            group = 'publishing'
-            doLast {
-                def url = new URL("https://ossrh-staging-api.central.sonatype.com/manual/upload/defaultRepository/$project.group")
-                println(url)
-                def con = url.openConnection() as HttpURLConnection
-                def username = findProperty("ossrhUsername")?.toString()
-                def password = findProperty("ossrhPassword")?.toString()
-                def credential = Base64.encoder.encodeToString("$username:$password".getBytes())
-                def authValue = "Bearer $credential"
-                con.setRequestMethod("POST")
-                con.setRequestProperty("Authorization", authValue)
-                println(con.responseCode)
-            }
         }
     }
 }
