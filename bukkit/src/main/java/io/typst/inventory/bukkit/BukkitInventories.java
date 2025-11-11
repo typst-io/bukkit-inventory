@@ -10,60 +10,61 @@ import java.util.Map;
 
 // TODO: context -- ItemStackOps
 public class BukkitInventories {
-    // adapter (mutable)
-    public static BukkitInventoryAdapter adapterFrom(Inventory inventory) {
-        return new BukkitInventoryAdapter(inventory);
-    }
-
-    public static MapInventoryAdapter<ItemStack> adapterFrom(Map<Integer, ItemStack> map) {
-        return new MapInventoryAdapter<>(map, BukkitItemStackOps.INSTANCE);
-    }
-
-    public static ListInventoryAdapter<ItemStack> adapterFrom(List<ItemStack> list) {
-        return new ListInventoryAdapter<>(list, BukkitItemStackOps.INSTANCE);
-    }
-
-    // snapshot (mutable)
-    public static InventorySnapshotView<ItemStack> viewFrom(Inventory inventory) {
-        return new InventorySnapshotView<>(adapterFrom(inventory), BukkitItemStackOps.INSTANCE, ItemKey.MINECRAFT_EMPTY);
-    }
-
-    public static InventorySnapshotView<ItemStack> viewFrom(Map<Integer, ItemStack> map) {
-        return new InventorySnapshotView<>(adapterFrom(map), BukkitItemStackOps.INSTANCE, ItemKey.MINECRAFT_EMPTY);
-    }
-
-    public static InventorySnapshotView<ItemStack> viewFrom(List<ItemStack> list) {
-        return new InventorySnapshotView<>(adapterFrom(list), BukkitItemStackOps.INSTANCE, ItemKey.MINECRAFT_EMPTY);
-    }
-
-    // sub
-    public static SubInventoryAdapter<ItemStack> subInventory(InventoryAdapter<ItemStack> delegate, Iterable<Integer> slots) {
-        return new SubInventoryAdapter<>(delegate, BukkitItemStackOps.INSTANCE, slots);
-    }
-
-    // mutator
     public static InventoryMutator<ItemStack, Player> from(Inventory inventory) {
-        return new InventoryMutator<>(adapterFrom(inventory), BukkitItemStackOps.INSTANCE, BukkitPlayerOps.INSTANCE, ItemKey.MINECRAFT_EMPTY);
+        ItemStackOps<ItemStack> itemOps = BukkitItemStackOps.INSTANCE;
+        return new InventoryMutator<>(
+                new BukkitInventoryAdapter(inventory, itemOps.empty()),
+                itemOps,
+                BukkitPlayerOps.INSTANCE,
+                ItemKey.MINECRAFT_EMPTY
+        );
     }
 
     public static InventoryMutator<ItemStack, Player> from(Map<Integer, ItemStack> map) {
-        return new InventoryMutator<>(adapterFrom(map), BukkitItemStackOps.INSTANCE, BukkitPlayerOps.INSTANCE, ItemKey.MINECRAFT_EMPTY);
+        ItemStackOps<ItemStack> itemOps = BukkitItemStackOps.INSTANCE;
+        return new InventoryMutator<>(
+                new MapInventoryAdapter<>(map, itemOps.empty()),
+                itemOps,
+                BukkitPlayerOps.INSTANCE,
+                ItemKey.MINECRAFT_EMPTY
+        );
     }
 
     public static InventoryMutator<ItemStack, Player> from(List<ItemStack> list) {
-        return new InventoryMutator<>(adapterFrom(list), BukkitItemStackOps.INSTANCE, BukkitPlayerOps.INSTANCE, ItemKey.MINECRAFT_EMPTY);
+        ItemStackOps<ItemStack> itemOps = BukkitItemStackOps.INSTANCE;
+        return new InventoryMutator<>(
+                new ListInventoryAdapter<>(list, itemOps.empty()),
+                itemOps,
+                BukkitPlayerOps.INSTANCE,
+                ItemKey.MINECRAFT_EMPTY
+        );
     }
 
-    // transaction (immutables)
-    public static InventoryTransaction<ItemStack> transactionFrom(Inventory inventory) {
-        return new InventoryTransaction<>(viewFrom(inventory), InventoryPatch.empty());
+    // TODO: 사용 클래스 하나만
+    // TODO: transaction & commit
+    // TODO: 고차함수 X
+    public static void main(String[] args) {
+        Inventory inventory = null;
+        ItemStack item = null;
+
+
+        if (from(inventory).giveItem(item)) {
+            // do
+        }
+        if (from(inventory).toSnapshotView().hasItems(item)) {
+            // do
+        }
+        if (from(inventory).takeItems(item)) {
+            // do
+        }
+
+        InventoryMutator<ItemStack, Player> transaction = from(inventory).copy();
+        if (transaction.takeItems(item) && transaction.giveItem(item)) {
+            transaction.forEach(inventory::setItem);
+        }
     }
 
-    public static InventoryTransaction<ItemStack> transactionFrom(Map<Integer, ItemStack> map) {
-        return new InventoryTransaction<>(viewFrom(map), InventoryPatch.empty());
-    }
-
-    public static InventoryTransaction<ItemStack> transactionFrom(List<ItemStack> list) {
-        return new InventoryTransaction<>(viewFrom(list), InventoryPatch.empty());
+    public static InventoryPatch<ItemStack> failurePatch() {
+        return InventoryPatch.failure(BukkitItemStacks.getEmpty());
     }
 }

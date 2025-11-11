@@ -11,17 +11,17 @@ import java.util.Map;
 @With
 public class MapInventoryAdapter<A> implements InventoryAdapter<A> {
     Map<Integer, A> itemMap;
-    ItemStackOps<A> itemOps;
+    A emptyItem;
 
-    public MapInventoryAdapter(Map<Integer, A> itemMap, ItemStackOps<A> itemOps) {
+    public MapInventoryAdapter(Map<Integer, A> itemMap, A emptyItem) {
         this.itemMap = itemMap;
-        this.itemOps = itemOps;
+        this.emptyItem = emptyItem;
     }
 
     @Override
     public A get(int slot) {
         A item = itemMap.get(slot);
-        return item != null ? item : itemOps.empty();
+        return item != null ? item : emptyItem;
     }
 
     @Override

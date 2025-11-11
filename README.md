@@ -186,15 +186,23 @@ A pure operation layer that does **not** directly modify the real inventory:
 * `findSlots(A): Map<Int, Int>`
 * ...
 
+Expressions:
+- empty: InventorySnapshotView.empty(ItemStackOps<A>, ItemKey)
+
 ### `InventoryPatch<A>`
 
 Explicit representations of operation results.
 
 * **InventoryPatch**
   * `modifiedItems`: slots to overwrite in the game inventory
-  * `patch`: failure result
+  * `failure`: failure result
     * `giveLeftoverItems`: any part of the item that could not be inserted
     * `takeRemainingItems`: any part of the item that could not be taken
+
+Expressions:
+- empty: initial patch
+- failure: InventoryPatch.failure(A)
+
 ### `InventoryAdapter<A>`
 
 Generalized interface for slot-based access, with implementations such as:
@@ -214,3 +222,10 @@ Common operations for an item type:
 * `getAmount(A): Int` / `setAmount(A, Int)`: read/write item amount
 * `getMaxStackSize(A): Int`: maximum stack size
 * `copy(A): A`: copy an item
+
+### InventoryTransaction<A>
+
+Process inventory operations as atomic
+
+Expressions:
+- failure: InventoryTransaction.failure(ItemStackOps<A>, ItemKey)

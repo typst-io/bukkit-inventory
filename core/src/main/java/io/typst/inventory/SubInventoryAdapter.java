@@ -10,12 +10,12 @@ import java.util.*;
 @With
 public class SubInventoryAdapter<A> implements InventoryAdapter<A> {
     InventoryAdapter<A> delegate;
-    ItemStackOps<A> itemOps;
+    A emptyItem;
     Set<Integer> slots;
 
-    public SubInventoryAdapter(InventoryAdapter<A> delegate, ItemStackOps<A> itemOps, Iterable<Integer> slots) {
+    public SubInventoryAdapter(InventoryAdapter<A> delegate, A emptyItem, Iterable<Integer> slots) {
         this.delegate = delegate;
-        this.itemOps = itemOps;
+        this.emptyItem = emptyItem;
         Set<Integer> newSlots = new LinkedHashSet<>();
         slots.forEach(newSlots::add);
         this.slots = Set.copyOf(newSlots);
@@ -24,7 +24,7 @@ public class SubInventoryAdapter<A> implements InventoryAdapter<A> {
     @Override
     public A get(int slot) {
         if (!slots.contains(slot)) {
-            return itemOps.empty();
+            return emptyItem;
         }
         return delegate.get(slot);
     }

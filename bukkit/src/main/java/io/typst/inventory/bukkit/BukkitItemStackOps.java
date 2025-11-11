@@ -96,7 +96,7 @@ public class BukkitItemStackOps implements ItemStackOps<ItemStack> {
     }
 
     @Override
-    public boolean isSimilar(ItemStack itemStack, ItemStack b) {
-        return false;
+    public boolean isSimilar(ItemStack a, ItemStack b) {
+        return a.isSimilar(b);
     }
 }

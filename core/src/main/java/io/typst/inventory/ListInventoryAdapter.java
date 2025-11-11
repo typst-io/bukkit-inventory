@@ -15,18 +15,18 @@ import java.util.stream.IntStream;
 @With
 public class ListInventoryAdapter<A> implements InventoryAdapter<A> {
     List<A> items;
-    ItemStackOps<A> itemOps;
+    A emptyItem;
 
-    public ListInventoryAdapter(List<A> items, ItemStackOps<A> itemOps) {
+    public ListInventoryAdapter(List<A> items, A emptyItem) {
         this.items = items;
-        this.itemOps = itemOps;
+        this.emptyItem = emptyItem;
     }
 
     @Override
     public A get(int slot) {
         return items.size() > slot
                 ? items.get(slot)
-                : itemOps.empty();
+                : emptyItem;
     }
 
     @Override
@@ -34,7 +34,7 @@ public class ListInventoryAdapter<A> implements InventoryAdapter<A> {
         if (slot >= items.size()) {
             int diff = slot + 1 - items.size();
             for (int i = 0; i < diff; i++) {
-                items.add(itemOps.empty());
+                items.add(emptyItem);
             }
         }
         items.set(slot, item);

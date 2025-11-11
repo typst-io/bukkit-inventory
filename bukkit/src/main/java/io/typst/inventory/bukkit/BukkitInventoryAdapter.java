@@ -1,7 +1,6 @@
 package io.typst.inventory.bukkit;
 
 import io.typst.inventory.InventoryAdapter;
-import io.typst.inventory.ItemStackOps;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -13,23 +12,20 @@ import java.util.stream.IntStream;
 
 public class BukkitInventoryAdapter implements InventoryAdapter<ItemStack> {
     private final Inventory inventory;
-    private final ItemStackOps<ItemStack> itemOps;
+    private final ItemStack emptyItem;
 
-    public BukkitInventoryAdapter(Inventory inventory, ItemStackOps<ItemStack> itemOps) {
+    public BukkitInventoryAdapter(Inventory inventory, ItemStack emptyItem) {
         this.inventory = inventory;
-        this.itemOps = itemOps;
+        this.emptyItem = emptyItem;
     }
 
-    public BukkitInventoryAdapter(Inventory inventory) {
-        this(inventory, BukkitItemStackOps.INSTANCE);
-    }
 
     @Override
     public ItemStack get(int slot) {
         ItemStack item = inventory.getItem(slot);
         return item != null
                 ? item
-                : itemOps.empty();
+                : emptyItem;
     }
 
     @Override

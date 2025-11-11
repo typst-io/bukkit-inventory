@@ -85,6 +85,24 @@ if (BukkitInventories.from(map).takeItems(items)) {
 }
 ```
 
+
+예시 4: 원자적 처리 -- take/give
+
+```java
+// inventory: Inventory
+// inputItem: ItemStack
+// outputItem: ItemStack
+// inputSlots: List<Int>
+// outputSlot: Int
+var transaction = BukkitInventories.transactionFrom(inv)
+  .updated(inv -> inv.takeItems(inputItem))
+  .updated(inv -> inv.giveItems(outputItem));
+if (transaction.isSuccess()) {
+  transaction.getPatch().getModifiedItems().forEach(inv::set);
+  // some another operations...
+}
+```
+
 ## Bukkit API implementation
 
 ### Java
@@ -142,6 +160,9 @@ if (BukkitInventories.from(map).takeItems(items)) {
 - `findSlots(A): Map<Int, Int>`
 - ...
 
+표현:
+- empty: InventorySnapshotView.empty(ItemStackOps<A>, ItemKey)
+
 ### InventoryPatch<A>
 
 연산 결과를 명시적으로 표현:
@@ -149,6 +170,9 @@ if (BukkitInventories.from(map).takeItems(items)) {
   - failure: 실패 정보
     - giveLeftoverItems: give 시 공간이 없어 다 넣지 못 한 아이템
     - takeRemainingItems: take 시 부족한 아이템
+
+표현:
+- failure: InventoryPatch.failure(A)
 
 ### InventoryAdapter<A>
 
@@ -170,3 +194,9 @@ if (BukkitInventories.from(map).takeItems(items)) {
 - `getMaxStackSize(A): Int`: 아이템의 쌓일 수 있는 최대 개수 get
 - `copy(A): A`: 아이템 copy
 
+### InventoryTransaction<A>
+
+인벤토리에 대한 작업을 원자척으로 처리
+
+표현:
+- failure: InventoryTransaction.failure(ItemStackOps<A>, ItemKey)

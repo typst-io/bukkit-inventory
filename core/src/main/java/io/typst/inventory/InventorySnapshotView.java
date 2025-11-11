@@ -22,24 +22,47 @@ import java.util.function.Predicate;
  * If the underlying inventory is modified externally after the snapshot is created,
  * those changes will be observed through this view. If you need a truly frozen
  * snapshot, use {@link #toImmutable()} or wrap a copied map in a {@link MapInventoryAdapter} before constructing
- * this instance.</p>
+ * this instance. Also {@link #updated(Map)} copies inventory to immutable.</p>
  */
 @Value
 @With
 public class InventorySnapshotView<A> implements Iterable<Map.Entry<Integer, A>> {
+    // findSpaces, subInventory, findSlots, takeItems, hasItems, countItems, giveItems
+
+    // takeItems :: InventoryPatch
+    // giveItems :: InventoryPatch
+    // findSpaces :: Map<Int, Int>
+    // findSlots :: Map<Int, Int>
+    // hasItems :: Bool
+    // countItems :: Int
+
+    // InventoryAdapter = Map | List | Inventory
+    //
     /**
      * Note that this field can be a mutable
      */
     InventoryAdapter<A> inventory;
     ItemStackOps<A> itemOps;
-    ItemKey emptyItemkey;
+    ItemKey emptyItemKey;
 
-    public InventorySnapshotView(@NotNull InventoryAdapter<A> inventory, @NotNull ItemStackOps<A> itemOps, ItemKey emptyItemkey) {
+    public InventorySnapshotView(@NotNull InventoryAdapter<A> inventory, @NotNull ItemStackOps<A> itemOps, ItemKey emptyItemKey) {
         this.inventory = inventory;
         this.itemOps = itemOps;
-        this.emptyItemkey = emptyItemkey;
+        this.emptyItemKey = emptyItemKey;
     }
 
+    public static <A> InventorySnapshotView<A> empty(ItemStackOps<A> itemOps, ItemKey emptyItemKey) {
+        return new InventorySnapshotView<>(
+                new MapInventoryAdapter<>(Map.of(), itemOps.empty()),
+                itemOps,
+                emptyItemKey
+        );
+    }
+
+    /**
+     * Copies inventory as immutable
+     * @return immutable snapshot
+     */
     public InventorySnapshotView<A> toImmutable() {
         Map<Integer, A> map = new LinkedHashMap<>();
         for (Map.Entry<Integer, @NotNull A> pair : inventory) {
@@ -47,14 +70,20 @@ public class InventorySnapshotView<A> implements Iterable<Map.Entry<Integer, A>>
             A newItem = itemOps.isEmpty(item) ? itemOps.empty() : item;
             map.put(pair.getKey(), newItem);
         }
-        return new InventorySnapshotView<>(new MapInventoryAdapter<>(Map.copyOf(map), itemOps), itemOps, emptyItemkey);
+        return new InventorySnapshotView<>(new MapInventoryAdapter<>(Map.copyOf(map), itemOps.empty()), itemOps, emptyItemKey);
     }
 
+    /**
+     * Copies inventory as immutable updated with the given modifiedItems
+     *
+     * @param modifiedItems overwritable items by slot
+     * @return immutable snapshot
+     */
     public InventorySnapshotView<A> updated(Map<Integer, A> modifiedItems) {
         Map<Integer, A> newItems = new LinkedHashMap<>();
         inventory.iterator().forEachRemaining(pair -> newItems.put(pair.getKey(), pair.getValue()));
         newItems.putAll(modifiedItems);
-        return withInventory(new MapInventoryAdapter<>(newItems, itemOps));
+        return withInventory(new MapInventoryAdapter<>(Map.copyOf(newItems), itemOps.empty()));
     }
 
     @Override
@@ -64,7 +93,7 @@ public class InventorySnapshotView<A> implements Iterable<Map.Entry<Integer, A>>
 
     @NotNull
     public InventorySnapshotView<A> subInventory(Iterable<Integer> slots) {
-        return withInventory(new SubInventoryAdapter<>(inventory, itemOps, slots));
+        return withInventory(new SubInventoryAdapter<>(inventory, itemOps.empty(), slots));
     }
 
     @NotNull

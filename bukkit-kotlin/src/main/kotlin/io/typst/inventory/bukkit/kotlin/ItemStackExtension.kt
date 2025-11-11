@@ -1,9 +1,5 @@
 package io.typst.inventory.bukkit.kotlin
 
-import io.typst.inventory.InventoryFailure
-import io.typst.inventory.InventoryPatch
-import io.typst.inventory.InventorySnapshotView
-import io.typst.inventory.InventoryTransaction
 import io.typst.inventory.ItemKey
 import io.typst.inventory.ItemStackOps
 import io.typst.inventory.bukkit.BukkitItem
@@ -15,7 +11,8 @@ import kotlin.jvm.optionals.getOrNull
 
 val ItemStack?.isEmptyItem: Boolean get() = BukkitItemStacks.isEmpty(this)
 
-fun ItemStack?.addedItem(item: ItemStack, ops: ItemStackOps<ItemStack> = BukkitItemStackOps.INSTANCE): ItemStack? = BukkitItemStacks.addedItem(this, item, ops).getOrNull()
+fun ItemStack?.addedItem(item: ItemStack, ops: ItemStackOps<ItemStack> = BukkitItemStackOps.INSTANCE): ItemStack? =
+    BukkitItemStacks.addedItem(this, item, ops).getOrNull()
 
 fun Collection<ItemStack>.collapse(): List<ItemStack> = BukkitItemStacks.collapseItems(this)
 
@@ -40,5 +37,3 @@ fun Material.toItemKey(): ItemKey = ItemKey(key.toString(), "")
 fun ItemKey.toItemStack(): ItemStack? = BukkitItemStackOps.INSTANCE.create(this)
 
 fun emptyItemStack(): ItemStack = BukkitItemStacks.getEmpty()
-
-fun failurePatch(): InventoryPatch<ItemStack> = InventoryPatch.failure(emptyItemStack())

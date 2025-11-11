@@ -1,19 +1,17 @@
 package io.typst.inventory.bukkit;
 
+import io.typst.inventory.InventoryMutator;
 import io.typst.inventory.InventoryPatch;
-import io.typst.inventory.InventorySnapshotView;
-import io.typst.inventory.ItemKey;
 import io.typst.inventory.ItemStackOps;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-
-import static io.typst.inventory.bukkit.BukkitInventories.adapterFrom;
 
 public class BukkitItemStacks {
     public static boolean isEmpty(ItemStack item) {
@@ -30,16 +28,14 @@ public class BukkitItemStacks {
      */
     public static Optional<ItemStack> addedItem(@Nullable ItemStack target, @NotNull ItemStack item, @NotNull ItemStackOps<ItemStack> ops) {
         ItemStack targetItem = target != null ? target : ops.empty();
-        InventorySnapshotView<ItemStack> view = new InventorySnapshotView<>(
-                adapterFrom(Map.of(0, targetItem)).withItemOps(ops), ops, ItemKey.MINECRAFT_EMPTY
-        );
-        InventoryPatch<ItemStack> result = view.withItemOps(ops).giveItems(item);
-        ItemStack leftoverItem = result.getFailure().getGiveLeftoverItems().isEmpty()
-                ? null
-                : result.getFailure().getGiveLeftoverItems().get(0);
-        item.setAmount(leftoverItem != null ? leftoverItem.getAmount() : item.getAmount());
-        ItemStack ret = result.getModifiedItems().get(0);
-        return Optional.ofNullable(ret != null && !isEmpty(ret) ? ret : null);
+        LinkedHashMap<Integer, ItemStack> map = new LinkedHashMap<>();
+        map.put(0, targetItem);
+        InventoryMutator<ItemStack, Player> mutator = BukkitInventories.from(map).withItemOps(ops);
+        if (mutator.giveItem(item)) {
+            ItemStack ret = map.get(0);
+            return Optional.ofNullable(ret != null && !isEmpty(ret) ? ret : null);
+        }
+        return Optional.empty();
     }
 
     public static Optional<ItemStack> addedItem(@Nullable ItemStack target, @NotNull ItemStack item) {
