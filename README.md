@@ -103,11 +103,9 @@ if (BukkitInventories.from(map).takeItems(items)) {
 // outputItem: ItemStack
 // inputSlots: List<Int>
 // outputSlot: Int
-var transaction = BukkitInventories.transactionFrom(inv)
-  .updated(inv -> inv.takeItems(inputItem))
-  .updated(inv -> inv.giveItems(outputItem));
-if (transaction.isSuccess()) {
-  transaction.getPatch().getModifiedItems().forEach(inv::set);
+var mutator BukkitInventories.from(inv).copy(); // Copy
+if (mutator.takeItems(inputItem) && mutator.giveItems(outputItem)) {
+    mutator.forEach(inv::set); // Update
   // some another operations...
 }
 ```
@@ -222,10 +220,3 @@ Common operations for an item type:
 * `getAmount(A): Int` / `setAmount(A, Int)`: read/write item amount
 * `getMaxStackSize(A): Int`: maximum stack size
 * `copy(A): A`: copy an item
-
-### InventoryTransaction<A>
-
-Process inventory operations as atomic
-
-Expressions:
-- failure: InventoryTransaction.failure(ItemStackOps<A>, ItemKey)

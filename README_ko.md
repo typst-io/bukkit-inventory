@@ -94,12 +94,10 @@ if (BukkitInventories.from(map).takeItems(items)) {
 // outputItem: ItemStack
 // inputSlots: List<Int>
 // outputSlot: Int
-var transaction = BukkitInventories.transactionFrom(inv)
-  .updated(inv -> inv.takeItems(inputItem))
-  .updated(inv -> inv.giveItems(outputItem));
-if (transaction.isSuccess()) {
-  transaction.getPatch().getModifiedItems().forEach(inv::set);
-  // some another operations...
+var mutator BukkitInventories.from(inv).copy(); // Copy
+if (mutator.takeItems(inputItem) && mutator.giveItems(outputItem)) {
+        mutator.forEach(inv::set); // Update
+// some another operations...
 }
 ```
 
@@ -193,10 +191,3 @@ if (transaction.isSuccess()) {
 - `getAmount(A): Int` / `setAmount(A, Int)`: 아이템 개수 get/set
 - `getMaxStackSize(A): Int`: 아이템의 쌓일 수 있는 최대 개수 get
 - `copy(A): A`: 아이템 copy
-
-### InventoryTransaction<A>
-
-인벤토리에 대한 작업을 원자척으로 처리
-
-표현:
-- failure: InventoryTransaction.failure(ItemStackOps<A>, ItemKey)
