@@ -26,7 +26,7 @@ tasks.register("publishCentralPortal") {
 
 allprojects {
     group = 'io.typst'
-    version = '2.3.0'
+    version = '2.4.0'
     def moduleName = name.substring(name.lastIndexOf('-') + 1)
     println(moduleName)
     ext.registerPublish = {

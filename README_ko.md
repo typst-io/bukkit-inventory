@@ -54,24 +54,25 @@ dependencies {
 예시 1: 특정 슬롯(3)에만 아이템 넣고 남는 건 드롭
 
 ```java
-// 버킷 API: 자바 예시
-InventoryMutator<ItemStack, Player> mutator = BukkitInventories.from(inventory)
-      .withSubInventory(3) // 범위 선택 가능
-      .giveItemOrDrop(player, item);
+// Using inventory-bukkit (Java)
+BukkitInventories.from(inventory)
+        .subInventory(3) // can select a specific slot range
+        .giveItemOrDrop(player, item);
 ```
+
 ```kotlin
-// 버킷 API: 코틀린 예시
-inventory.toMutator().withSubInventory(3) // 범위 선택 가능
+// Using inventory-bukkit (Kotlin)
+inventory.subInventory(3) // can select a specific slot range
     .giveItemOrDrop(player, item)
 ```
 
 예시 2: 인벤토리에 공간 충분할 때만 넣기
 
 ```java
-if (BukkitInventories.from(inventory).giveItem(item)) {
-    // 성공, 인벤토리 데이터 업데이트 됨
+if (BukkitInventories.from(inventory).giveItems(item)) {
+    // Success: inventory updated
 } else {
-    // 실패: 공간 없음, 인벤토리 데이터 변동 X
+    // Failed: not enough space, inventory unchanged
 }
 ```
 
@@ -80,11 +81,11 @@ if (BukkitInventories.from(inventory).giveItem(item)) {
 ```java
 // map: Map<Int, ItemStack>
 BukkitInventories.from(map).giveItemOrDrop(player, item);
+
 if (BukkitInventories.from(map).takeItems(items)) {
-  // success
+    // success
 }
 ```
-
 
 예시 4: 원자적 처리 -- take/give
 
@@ -96,9 +97,24 @@ if (BukkitInventories.from(map).takeItems(items)) {
 // outputSlot: Int
 var mutator BukkitInventories.from(inv).copy(); // Copy
 if (mutator.takeItems(inputItem) && mutator.giveItems(outputItem)) {
-        mutator.forEach(inv::set); // Update
-// some another operations...
+    mutator.forEach(inv::set); // Update
+  // some another operations...
 }
+```
+
+```kotlin
+// inventory: Inventory
+// inputItem: ItemStack
+// outputItem: ItemStack
+// inputSlots: List<Int>
+// outputSlot: Int
+var mutator inv.copy() // Copy
+if (mutator.takeItems(inputItem) && mutator.giveItems(outputItem)) {
+    mutator.forEach(inv::set) // Update
+  // some another operations...
+}
+```
+
 ```
 
 ## Bukkit API implementation

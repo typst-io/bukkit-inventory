@@ -63,14 +63,13 @@ Prerequisite: `io.typst:inventory-bukkit` dependency.
 ```java
 // Using inventory-bukkit (Java)
 BukkitInventories.from(inventory)
-        .withSubInventory(3) // can select a specific slot range
+        .subInventory(3) // can select a specific slot range
         .giveItemOrDrop(player, item);
 ```
 
 ```kotlin
 // Using inventory-bukkit (Kotlin)
-inventory.toMutator()
-    .withSubInventory(3) // can select a specific slot range
+inventory.subInventory(3) // can select a specific slot range
     .giveItemOrDrop(player, item)
 ```
 
@@ -106,6 +105,19 @@ if (BukkitInventories.from(map).takeItems(items)) {
 var mutator BukkitInventories.from(inv).copy(); // Copy
 if (mutator.takeItems(inputItem) && mutator.giveItems(outputItem)) {
     mutator.forEach(inv::set); // Update
+  // some another operations...
+}
+```
+
+```kotlin
+// inventory: Inventory
+// inputItem: ItemStack
+// outputItem: ItemStack
+// inputSlots: List<Int>
+// outputSlot: Int
+var mutator inv.copy() // Copy
+if (mutator.takeItems(inputItem) && mutator.giveItems(outputItem)) {
+    mutator.forEach(inv::set) // Update
   // some another operations...
 }
 ```

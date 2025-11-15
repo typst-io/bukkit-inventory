@@ -15,3 +15,10 @@ fun Map<Int, ItemStack>.toMutator(): InventoryMutator<ItemStack, Player> = Bukki
 fun List<ItemStack>.toMutator(): InventoryMutator<ItemStack, Player> = BukkitInventories.from(this)
 
 fun failureInventoryPatch(): InventoryPatch<ItemStack> = BukkitInventories.failurePatch()
+
+// util
+fun Inventory.copy(): InventoryMutator<ItemStack, Player> = toMutator().copy()
+
+fun Inventory.subInventory(vararg slots: Int): InventoryMutator<ItemStack, Player> = toMutator().subInventory(slots.toList())
+
+fun Inventory.subInventory(slots: Iterable<Int>): InventoryMutator<ItemStack, Player> = toMutator().subInventory(slots)
