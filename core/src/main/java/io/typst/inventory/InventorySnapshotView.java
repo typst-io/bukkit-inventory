@@ -61,6 +61,7 @@ public class InventorySnapshotView<A> implements Iterable<Map.Entry<Integer, A>>
 
     /**
      * Copies inventory as immutable
+     *
      * @return immutable snapshot
      */
     public InventorySnapshotView<A> toImmutable() {
@@ -278,6 +279,11 @@ public class InventorySnapshotView<A> implements Iterable<Map.Entry<Integer, A>>
             itemOps.setAmount(remainingItem, count);
         }
         return InventoryPatch.fromTakeResult(ret, remainingItem);
+    }
+
+    @NotNull
+    public InventoryPatch<A> takeItem(int count, ItemKey key) {
+        return takeItem(count, itemOps.create(key), item -> itemOps.getKeyFrom(item).equals(key));
     }
 
     public boolean hasItems(A x) {

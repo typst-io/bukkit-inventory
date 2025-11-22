@@ -40,30 +40,6 @@ public class BukkitInventories {
         );
     }
 
-    // TODO: 사용 클래스 하나만
-    // TODO: transaction & commit
-    // TODO: 고차함수 X
-    public static void main(String[] args) {
-        Inventory inventory = null;
-        ItemStack item = null;
-
-
-        if (from(inventory).giveItem(item)) {
-            // do
-        }
-        if (from(inventory).toSnapshotView().hasItems(item)) {
-            // do
-        }
-        if (from(inventory).takeItems(item)) {
-            // do
-        }
-
-        InventoryMutator<ItemStack, Player> transaction = from(inventory).copy();
-        if (transaction.takeItems(item) && transaction.giveItem(item)) {
-            transaction.forEach(inventory::setItem);
-        }
-    }
-
     public static InventoryPatch<ItemStack> failurePatch() {
         return InventoryPatch.failure(BukkitItemStacks.getEmpty());
     }

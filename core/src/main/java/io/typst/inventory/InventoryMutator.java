@@ -84,6 +84,15 @@ public class InventoryMutator<I, E> {
         return takeItems(List.of(items));
     }
 
+    public boolean takeItem(int count, ItemKey key) {
+        InventoryPatch<I> patch = toSnapshotView().takeItem(count, key);
+        if (patch.isSuccess()) {
+            patch.getModifiedItems().forEach(inventory::set);
+            return true;
+        }
+        return false;
+    }
+
     public InventoryMutator<I, E> subInventory(Iterable<Integer> slots) {
         return withInventory(new SubInventoryAdapter<>(inventory, itemOps.empty(), slots));
     }
