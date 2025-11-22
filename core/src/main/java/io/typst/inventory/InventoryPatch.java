@@ -4,9 +4,7 @@ import lombok.Value;
 import lombok.With;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Describes a (potential) result of applying one or more inventory operations.
@@ -30,12 +28,14 @@ import java.util.Map;
 @With
 public class InventoryPatch<A> {
     Map<Integer, A> modifiedItems;
+    List<Map.Entry<Integer, A>> diff;
     InventoryFailure<A> failure;
     @SuppressWarnings("rawtypes")
-    private static final InventoryPatch EMPTY = new InventoryPatch<>(Map.of(), InventoryFailure.empty());
+    private static final InventoryPatch EMPTY = new InventoryPatch<>(Map.of(), List.of(), InventoryFailure.empty());
 
-    public InventoryPatch(Map<Integer, A> modifiedItems, InventoryFailure<A> failure) {
+    public InventoryPatch(Map<Integer, A> modifiedItems, List<Map.Entry<Integer, A>> diff, InventoryFailure<A> failure) {
         this.modifiedItems = Map.copyOf(new LinkedHashMap<>(modifiedItems));
+        this.diff = List.copyOf(new ArrayList<>(diff));
         this.failure = failure;
     }
 
@@ -54,22 +54,24 @@ public class InventoryPatch<A> {
 
     public InventoryPatch<A> plus(InventoryPatch<A> another) {
         Map<Integer, A> newItems = new LinkedHashMap<>(modifiedItems);
+        List<Map.Entry<Integer, A>> newDiff = new ArrayList<>(diff);
         newItems.putAll(another.modifiedItems);
+        newDiff.addAll(another.diff);
         InventoryFailure<A> newFailure = failure.plus(another.getFailure());
-        return new InventoryPatch<>(newItems, newFailure);
+        return new InventoryPatch<>(newItems, newDiff, newFailure);
     }
 
-    public static <A> InventoryPatch<A> fromTakeResult(Map<Integer, A> modifiedItems, @Nullable A remainingItem) {
+    public static <A> InventoryPatch<A> fromTakeResult(Map<Integer, A> modifiedItems, List<Map.Entry<Integer, A>> diff, @Nullable A remainingItem) {
         List<A> remainingItems = remainingItem != null
                 ? List.of(remainingItem)
                 : List.of();
-        return new InventoryPatch<>(modifiedItems, new InventoryFailure<>(remainingItems, List.of()));
+        return new InventoryPatch<>(modifiedItems, diff, new InventoryFailure<>(remainingItems, List.of()));
     }
 
-    public static <A> InventoryPatch<A> fromGiveResult(Map<Integer, A> modifiedItems, @Nullable A giveLeftoverItem) {
+    public static <A> InventoryPatch<A> fromGiveResult(Map<Integer, A> modifiedItems, List<Map.Entry<Integer, A>> diff, @Nullable A giveLeftoverItem) {
         List<A> leftoverItems = giveLeftoverItem != null
                 ? List.of(giveLeftoverItem)
                 : List.of();
-        return new InventoryPatch<>(modifiedItems, new InventoryFailure<>(List.of(), leftoverItems));
+        return new InventoryPatch<>(modifiedItems, diff, new InventoryFailure<>(List.of(), leftoverItems));
     }
 }

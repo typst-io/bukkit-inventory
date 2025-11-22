@@ -30,36 +30,6 @@ public class BukkitItemStackOps implements ItemStackOps<ItemStack> {
     }
 
     @Override
-    public Map<ItemKey, ItemStack> getHeaderMapFrom(Iterable<ItemStack> iterable) {
-        Map<ItemKey, ItemStack> map = new HashMap<>();
-        for (ItemStack item : iterable) {
-            ItemKey header = getKeyFrom(item);
-            ItemStack theItem = map.get(header);
-            ItemStack newItem = theItem != null ? theItem : new ItemStack(item);
-            int theAmount = theItem != null ? theItem.getAmount() : 0;
-            newItem.setAmount(newItem.getAmount() + theAmount);
-            map.put(header, newItem);
-        }
-        return map;
-    }
-
-    @Override
-    public List<ItemStack> collapseItems(Collection<ItemStack> items) {
-        Map<ItemStack, Integer> map = new HashMap<>(items.size());
-        for (ItemStack item : items) {
-            ItemStack newItem = item.clone();
-            newItem.setAmount(1);
-            map.put(newItem, map.getOrDefault(newItem, 0) + item.getAmount());
-        }
-        List<ItemStack> ret = new ArrayList<>(map.size());
-        for (Map.Entry<ItemStack, Integer> pair : map.entrySet()) {
-            pair.getKey().setAmount(pair.getValue());
-            ret.add(pair.getKey());
-        }
-        return ret;
-    }
-
-    @Override
     public int getAmount(ItemStack item) {
         return item.getAmount();
     }

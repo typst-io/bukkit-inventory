@@ -13,6 +13,8 @@ dependencies {
     implementation 'org.jetbrains:annotations:26.0.2-1'
     compileOnly lombok('1.18.42')
     annotationProcessor lombok('1.18.42')
+    testCompileOnly lombok('1.18.42')
+    testAnnotationProcessor lombok('1.18.42')
     testImplementation platform('org.junit:junit-bom:5.9.1')
     testImplementation 'org.junit.jupiter:junit-jupiter'
 }

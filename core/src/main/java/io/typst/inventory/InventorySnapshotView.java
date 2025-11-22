@@ -147,7 +147,7 @@ public class InventorySnapshotView<A> implements Iterable<Map.Entry<Integer, A>>
         if (amount <= 0 || maxStack <= 0) {
             return Collections.emptyMap();
         }
-        Map<Integer, Integer> map = new HashMap<>();
+        Map<Integer, Integer> map = new LinkedHashMap<>();
         for (Map.Entry<Integer, A> pair : inventory) {
             if (amount <= 0) {
                 break;
@@ -201,7 +201,7 @@ public class InventorySnapshotView<A> implements Iterable<Map.Entry<Integer, A>>
         if (count <= 0) {
             return Collections.emptyMap();
         }
-        Map<Integer, Integer> ret = new HashMap<>();
+        Map<Integer, Integer> ret = new LinkedHashMap<>();
         for (Map.Entry<Integer, A> pair : inventory) {
             if (count <= 0) {
                 break;
@@ -254,10 +254,11 @@ public class InventorySnapshotView<A> implements Iterable<Map.Entry<Integer, A>>
         if (slots.isEmpty()) {
             A remainItem = itemOps.copy(baseItem);
             itemOps.setAmount(remainItem, count);
-            return InventoryPatch.fromTakeResult(Map.of(), remainItem);
+            return InventoryPatch.fromTakeResult(Map.of(), List.of(), remainItem);
         }
 
-        Map<Integer, A> ret = new HashMap<>();
+        Map<Integer, A> ret = new LinkedHashMap<>();
+        List<Map.Entry<Integer, A>> diff = new ArrayList<>();
         for (Map.Entry<Integer, Integer> pair : slots.entrySet()) {
             Integer slot = pair.getKey();
             Integer amount = pair.getValue();
@@ -271,6 +272,10 @@ public class InventorySnapshotView<A> implements Iterable<Map.Entry<Integer, A>>
                 itemOps.setAmount(newItem, theAmount - amount);
                 ret.put(slot, newItem);
             }
+
+            A diffItem = itemOps.copy(theItem);
+            itemOps.setAmount(diffItem, amount);
+            diff.add(new AbstractMap.SimpleEntry<>(pair.getKey(), diffItem));
             count -= amount;
         }
         A remainingItem = null;
@@ -278,7 +283,7 @@ public class InventorySnapshotView<A> implements Iterable<Map.Entry<Integer, A>>
             remainingItem = itemOps.copy(baseItem);
             itemOps.setAmount(remainingItem, count);
         }
-        return InventoryPatch.fromTakeResult(ret, remainingItem);
+        return InventoryPatch.fromTakeResult(ret, diff, remainingItem);
     }
 
     @NotNull
@@ -306,7 +311,8 @@ public class InventorySnapshotView<A> implements Iterable<Map.Entry<Integer, A>>
             InventoryPatch<A> thePatch = InventoryPatch.empty();
 
             if (!spaces.isEmpty()) {
-                Map<Integer, A> ret = new HashMap<>();
+                Map<Integer, A> ret = new LinkedHashMap<>();
+                List<Map.Entry<Integer, A>> diff = new ArrayList<>();
                 int leftoverAmount = itemOps.getAmount(item);
                 for (Map.Entry<Integer, Integer> pair : spaces.entrySet()) {
                     Integer slot = pair.getKey();
@@ -316,6 +322,10 @@ public class InventorySnapshotView<A> implements Iterable<Map.Entry<Integer, A>>
                     itemOps.setAmount(newItem, itemOps.getAmount(theItem) + amount);
                     ret.put(slot, newItem);
                     leftoverAmount -= amount;
+
+                    A diffItem = itemOps.copy(theItem);
+                    itemOps.setAmount(diffItem, amount);
+                    diff.add(new AbstractMap.SimpleEntry<>(pair.getKey(), diffItem));
                 }
                 A leftoverItem = null;
                 if (leftoverAmount >= 1) {
@@ -323,7 +333,7 @@ public class InventorySnapshotView<A> implements Iterable<Map.Entry<Integer, A>>
                     itemOps.setAmount(leftover, leftoverAmount);
                     leftoverItem = leftover;
                 }
-                thePatch = InventoryPatch.fromGiveResult(ret, leftoverItem);
+                thePatch = InventoryPatch.fromGiveResult(ret, diff, leftoverItem);
             }
             patch = patch.plus(thePatch);
         }
