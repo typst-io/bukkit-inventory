@@ -34,6 +34,8 @@ fun item(
 
 fun Material.toItemKey(): ItemKey = ItemKey(key.toString(), "")
 
+fun ItemStack.toItemKey(ops: ItemStackOps<ItemStack> = BukkitItemStackOps.INSTANCE): ItemKey = ops.getKeyFrom(this)
+
 fun ItemKey.toItemStack(): ItemStack? = BukkitItemStackOps.INSTANCE.create(this)
 
 fun emptyItemStack(): ItemStack = BukkitItemStacks.getEmpty()

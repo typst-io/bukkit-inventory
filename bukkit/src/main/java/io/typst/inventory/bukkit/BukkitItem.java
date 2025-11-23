@@ -27,9 +27,7 @@ public class BukkitItem {
     public ItemStack create() {
         ItemStack newItem = new ItemStack(material, amount);
         if (!displayName.isEmpty() || !lore.isEmpty() || customModelData >= 0) {
-            ItemMeta meta = newItem.hasItemMeta()
-                    ? newItem.getItemMeta()
-                    : null;
+            ItemMeta meta = newItem.getItemMeta();
             if (meta != null) {
                 if (customModelData >= 0) {
                     meta.setCustomModelData(customModelData);
