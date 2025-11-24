@@ -2,13 +2,12 @@ package io.typst.inventory.bukkit;
 
 import io.typst.inventory.ItemKey;
 import io.typst.inventory.ItemStackOps;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Registry;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-
-import java.util.*;
 
 public class BukkitItemStackOps implements ItemStackOps<ItemStack> {
     public static final BukkitItemStackOps INSTANCE = new BukkitItemStackOps();
@@ -55,9 +54,19 @@ public class BukkitItemStackOps implements ItemStackOps<ItemStack> {
         Material material = namespacedKey != null
                 ? Registry.MATERIAL.get(namespacedKey)
                 : null;
-        return material != null
+        ItemStack item = material != null
                 ? new ItemStack(material)
                 : null;
+        if (!key.getName().isEmpty()) {
+            ItemMeta meta = item != null
+                    ? item.getItemMeta()
+                    : null;
+            if (meta != null) {
+                meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', key.getName()));
+                item.setItemMeta(meta);
+            }
+        }
+        return item;
     }
 
     @Override
